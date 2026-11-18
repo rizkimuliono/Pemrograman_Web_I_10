@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pemrograman Web I · Pertemuan 10 · PHP &amp; MySQLi CRUD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0d17;--panel:rgba(22,26,48,.78);--panel2:rgba(30,35,64,.7);--line:rgba(140,150,220,.16);
+  --txt:#e8eaf6;--mut:#9aa0c3;--php:#8892bf;--violet:#7c5cff;--blue:#5b7cff;--sql:#f29111;--teal:#16b3c9;
+  --ok:#3ddc97;--bad:#ff5d73;--warn:#ffd166;--r:16px;--mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--txt);font-family:'Plus Jakarta Sans',system-ui,sans-serif;overflow:hidden}
+body{display:flex;flex-direction:column}
+::selection{background:rgba(124,92,255,.45)}
+code,kbd,.mono{font-family:var(--mono)}
+.bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.blob{position:absolute;border-radius:50%;filter:blur(90px);animation:float 18s ease-in-out infinite alternate}
+.b1{width:520px;height:520px;background:#7c5cff;top:-140px;left:-120px;opacity:.32}
+.b2{width:480px;height:480px;background:#f29111;bottom:-180px;right:-100px;animation-delay:-6s;opacity:.18}
+.b3{width:380px;height:380px;background:#16b3c9;top:40%;left:45%;animation-delay:-12s;opacity:.14}
+@keyframes float{0%{transform:translate(0,0) scale(1)}100%{transform:translate(90px,60px) scale(1.15)}}
+.grid{position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:48px 48px;-webkit-mask-image:radial-gradient(ellipse at center,#000 25%,transparent 75%);mask-image:radial-gradient(ellipse at center,#000 25%,transparent 75%);opacity:.45}
+.sym{position:absolute;bottom:0;font-family:var(--mono);color:rgba(168,176,224,.12);font-size:20px;animation:drift linear infinite;white-space:nowrap}
+@keyframes drift{from{transform:translateY(20vh) rotate(0)}to{transform:translateY(-120vh) rotate(20deg)}}
+
+header.top{position:relative;z-index:20;display:flex;align-items:center;gap:14px;padding:10px 20px;border-bottom:1px solid var(--line);background:rgba(11,13,23,.65);backdrop-filter:blur(12px)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:14px}
+.logo{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,var(--violet),var(--sql));display:grid;place-items:center;font-family:var(--mono);font-size:11px;font-weight:700;box-shadow:0 6px 20px rgba(124,92,255,.35)}
+.top .meta{color:var(--mut);font-size:13px}
+.sp{flex:1}
+.counter{font-family:var(--mono);font-size:13px;color:var(--mut)}
+.stage{position:relative;z-index:2;flex:1;overflow:hidden}
+.slide{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:30px 40px 50px;visibility:hidden;opacity:0;transform:translateX(50px);transition:opacity .45s,transform .6s cubic-bezier(.2,.8,.2,1),visibility 0s .6s}
+.slide.left{transform:translateX(-50px)}
+.slide.active{visibility:visible;opacity:1;transform:none;transition:opacity .5s,transform .6s cubic-bezier(.2,.8,.2,1)}
+.wrap{max-width:1200px;margin:0 auto}
+.a{opacity:0}
+.slide.in .a{animation:rise .75s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*85ms + 100ms)}
+@keyframes rise{from{opacity:0;transform:translateY(26px);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(.8);opacity:0}60%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.shake{animation:shake .45s}
+
+footer.nav{position:relative;z-index:20;display:flex;align-items:center;gap:14px;padding:10px 20px;border-top:1px solid var(--line);background:rgba(11,13,23,.65);backdrop-filter:blur(12px)}
+.prog{flex:1;height:6px;border-radius:6px;background:rgba(255,255,255,.07);overflow:hidden;cursor:pointer}
+.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--violet),var(--teal),var(--sql));border-radius:6px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.hint{color:var(--mut);font-size:12px}
+.hint kbd{border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:11px;background:rgba(255,255,255,.05)}
+
+.btn{font:inherit;font-weight:600;font-size:14px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--txt);padding:9px 16px;border-radius:10px;cursor:pointer;transition:transform .2s,background .2s,box-shadow .2s;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.1)}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn.pri{background:linear-gradient(135deg,var(--violet),var(--blue));border-color:transparent;box-shadow:0 6px 22px rgba(124,92,255,.35)}
+.btn.org{background:linear-gradient(135deg,#f29111,#ff6b3d);border-color:transparent;box-shadow:0 6px 22px rgba(242,145,17,.3)}
+.btn.grn{background:linear-gradient(135deg,#21b37a,#3ddc97);border-color:transparent;color:#06150e}
+.btn.red{background:linear-gradient(135deg,#e0405a,#ff5d73);border-color:transparent}
+.btn.sm{padding:6px 11px;font-size:12.5px;border-radius:8px}
+.btn.ghost{background:transparent}
+
+.kicker{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--sql);margin-bottom:10px}
+.kicker::before{content:"";width:22px;height:2px;background:currentColor;border-radius:2px}
+h1{font-size:clamp(40px,6.5vw,84px);line-height:1.02;font-weight:800;letter-spacing:-.03em}
+h2{font-size:clamp(26px,3.4vw,40px);line-height:1.12;font-weight:800;letter-spacing:-.02em;margin-bottom:10px}
+h3{font-size:18px;font-weight:700;margin-bottom:8px}
+.grad{background:linear-gradient(100deg,#b9a8ff 0%,#7c9cff 35%,#4fd1e0 65%,#ffb35c 100%);-webkit-background-clip:text;background-clip:text;color:transparent;background-size:200% 100%;animation:shine 8s linear infinite}
+@keyframes shine{to{background-position:200% 0}}
+.lead{font-size:17px;color:var(--mut);line-height:1.65;max-width:820px}
+p{line-height:1.65}
+.mut{color:var(--mut)}
+.small{font-size:13px}
+.hl{color:var(--sql);font-weight:700}
+.ic{font-family:var(--mono);font-size:.88em;background:rgba(124,92,255,.16);border:1px solid rgba(124,92,255,.25);padding:1px 6px;border-radius:6px;color:#cfc4ff}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px;backdrop-filter:blur(8px)}
+.card.tight{padding:14px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.g-sim{display:grid;grid-template-columns:1.35fr 1fr;gap:18px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.col{display:flex;flex-direction:column;gap:12px}
+.mt{margin-top:18px}.mt2{margin-top:10px}.mb{margin-bottom:16px}
+.head{margin-bottom:22px}
+
+/* code */
+.codebox{background:#090b16;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.cb-head{display:flex;align-items:center;gap:10px;padding:9px 12px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.025)}
+.dots{display:flex;gap:6px}.dots i{width:10px;height:10px;border-radius:50%;background:#ff5f57}.dots i:nth-child(2){background:#febc2e}.dots i:nth-child(3){background:#28c840}
+.cb-head .fn{font-family:var(--mono);font-size:12px;color:var(--mut);flex:1}
+.copy{font:inherit;font-size:11.5px;background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--mut);padding:3px 9px;border-radius:6px;cursor:pointer}
+.copy:hover{color:var(--txt)}
+pre{margin:0;padding:14px 16px;overflow:auto;font-family:var(--mono);font-size:12.8px;line-height:1.65;max-height:440px;color:#d7dbf5;tab-size:4}
+pre.short{max-height:280px}
+pre code{font-family:inherit;white-space:pre}
+.token.comment,.token.prolog{color:#6a7199;font-style:italic}
+.token.keyword,.token.important{color:#c792ea}
+.token.string,.token.attr-value{color:#c3e88d}
+.token.variable{color:#82aaff}
+.token.function{color:#ffcb6b}
+.token.number,.token.boolean,.token.constant{color:#f78c6c}
+.token.operator,.token.punctuation{color:#89ddff}
+.token.tag{color:#f07178}
+.token.attr-name{color:#ffcb6b}
+.token.delimiter{color:#ff7a90;font-weight:700}
+.token.class-name{color:#ffcb6b}
+.caret::after{content:"▋";color:var(--sql);animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* tabs */
+.tabs{display:inline-flex;flex-wrap:wrap;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px;margin-bottom:12px}
+.tabs button{font:inherit;font-size:13px;font-weight:600;color:var(--mut);background:transparent;border:0;padding:7px 13px;border-radius:9px;cursor:pointer;transition:.25s}
+.tabs button.on{background:linear-gradient(135deg,var(--violet),var(--blue));color:#fff;box-shadow:0 4px 14px rgba(124,92,255,.35)}
+.pane{display:none}.pane.on{display:block;animation:fadeUp .4s}
+
+/* forms */
+label.lb{display:block;font-size:12px;font-weight:600;color:var(--mut);margin:0 0 5px;letter-spacing:.03em}
+input.in,select.in,textarea.in{width:100%;font:inherit;font-size:14px;color:var(--txt);background:rgba(5,6,13,.6);border:1px solid var(--line);border-radius:10px;padding:9px 12px;outline:none;transition:border .2s,box-shadow .2s}
+input.in:focus,select.in:focus,textarea.in:focus{border-color:var(--violet);box-shadow:0 0 0 3px rgba(124,92,255,.22)}
+select.in option{background:#151829}
+textarea.in{font-family:var(--mono);font-size:13px;resize:vertical;min-height:110px;line-height:1.6}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* tables */
+.tblwrap{overflow-x:auto;border-radius:12px;border:1px solid var(--line)}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th{text-align:left;color:var(--mut);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.07em;padding:9px 11px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.03);white-space:nowrap}
+.tbl td{padding:9px 11px;border-bottom:1px solid rgba(255,255,255,.05);white-space:nowrap}
+.tbl tr:last-child td{border-bottom:0}
+.flashG{animation:flashG 1.8s}
+@keyframes flashG{0%,30%{background:rgba(61,220,151,.3)}100%{background:transparent}}
+.flashY{animation:flashY 1.8s}
+@keyframes flashY{0%,30%{background:rgba(255,209,102,.32)}100%{background:transparent}}
+
+/* console */
+.console{background:#05060d;border:1px solid var(--line);border-radius:12px;font-family:var(--mono);font-size:12.3px;line-height:1.6;padding:12px 14px;overflow:auto}
+.console .ln{animation:fadeUp .3s both;white-space:pre-wrap;word-break:break-word}
+.c-req{color:#82aaff}.c-php{color:#c792ea}.c-sql{color:#ffb35c}.c-ok{color:var(--ok)}.c-err{color:var(--bad)}.c-mut{color:#5d6390}.c-warn{color:var(--warn)}
+.res-err{color:var(--bad);font-family:var(--mono);font-size:13px;padding:10px 12px;border:1px solid rgba(255,93,115,.35);background:rgba(255,93,115,.08);border-radius:10px;animation:fadeUp .3s}
+.res-ok{color:var(--ok);font-family:var(--mono);font-size:13px;padding:10px 12px;border:1px solid rgba(61,220,151,.3);background:rgba(61,220,151,.07);border-radius:10px;animation:fadeUp .3s}
+.res-mut{color:var(--mut);font-family:var(--mono);font-size:12px;padding:8px 2px}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;background:rgba(124,92,255,.18);color:#cfc4ff;border:1px solid rgba(124,92,255,.3)}
+.badge.o{background:rgba(242,145,17,.15);color:#ffc47a;border-color:rgba(242,145,17,.35)}
+.badge.g{background:rgba(61,220,151,.13);color:#8ff0c4;border-color:rgba(61,220,151,.3)}
+.badge.r{background:rgba(255,93,115,.13);color:#ff9aaa;border-color:rgba(255,93,115,.3)}
+.badge.t{background:rgba(22,179,201,.14);color:#86e6f2;border-color:rgba(22,179,201,.32)}
+.note{border-left:3px solid var(--sql);background:rgba(242,145,17,.07);padding:11px 14px;border-radius:0 10px 10px 0;font-size:13.5px;line-height:1.6;color:#e6d9c6}
+.note.v{border-color:var(--violet);background:rgba(124,92,255,.08);color:#d9d3fa}
+.note.r{border-color:var(--bad);background:rgba(255,93,115,.08);color:#f5d0d6}
+.note.g{border-color:var(--ok);background:rgba(61,220,151,.07);color:#cdeedd}
+
+/* cover */
+.cover{min-height:100%;display:grid;grid-template-columns:1.1fr 1fr;align-items:center;gap:30px}
+.pill{display:inline-flex;gap:8px;align-items:center;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.04);font-size:13px;color:var(--mut);margin-bottom:22px}
+.pill b{color:var(--txt)}
+.live{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 0 rgba(61,220,151,.6);animation:ping 1.8s infinite}
+@keyframes ping{70%{box-shadow:0 0 0 10px rgba(61,220,151,0)}100%{box-shadow:0 0 0 0 rgba(61,220,151,0)}}
+.term{margin-top:26px;background:#05060d;border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-family:var(--mono);font-size:13.5px;min-height:52px;color:#c3e88d;max-width:640px}
+.term .pr{color:var(--violet)}
+.cover-art svg{width:100%;height:auto;filter:drop-shadow(0 30px 60px rgba(0,0,0,.4))}
+.flowline{stroke-dasharray:6 8;animation:dash 1.2s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-28}}
+.bob{animation:bob 4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.bob2{animation-delay:-1.3s}.bob3{animation-delay:-2.6s}
+@keyframes bob{50%{transform:translateY(-10px)}}
+
+.lect{display:flex;align-items:center;gap:12px;margin-top:22px;padding:10px 16px 10px 10px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);width:fit-content;max-width:100%}
+.lect .lav{flex:none;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-weight:800;background:linear-gradient(135deg,var(--violet),var(--sql))}
+.lect b{display:block;font-size:15px}.lect span{font-size:12.5px;color:var(--mut)}
+/* objectives */
+.obj{display:flex;gap:14px;align-items:flex-start}
+.obj .n{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:800;font-family:var(--mono);background:linear-gradient(135deg,rgba(124,92,255,.35),rgba(22,179,201,.25));border:1px solid var(--line)}
+.agenda{display:flex;flex-wrap:wrap;gap:10px}
+.chip{font:inherit;font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--txt);cursor:pointer;transition:.25s}
+.chip:hover{background:rgba(124,92,255,.2);border-color:rgba(124,92,255,.5);transform:translateY(-2px)}
+.chip .k{color:var(--sql);font-family:var(--mono);margin-right:6px}
+
+/* flow */
+.flowsvg{width:100%;height:auto}
+.node rect{fill:rgba(22,26,48,.95);stroke:rgba(140,150,220,.35);stroke-width:1.5}
+.node text{fill:var(--txt);font-family:'Plus Jakarta Sans';font-weight:700}
+.node .sub{fill:var(--mut);font-size:12px;font-weight:500}
+.node{transform-box:fill-box;transform-origin:center;transition:filter .3s}
+.node.pulse{animation:npulse .8s ease}
+.node.on rect{stroke:var(--sql);stroke-width:2.5}
+@keyframes npulse{40%{transform:scale(1.08)}}
+.fpath{fill:none;stroke:rgba(140,150,220,.25);stroke-width:2;stroke-dasharray:5 7}
+.fpath.lit{stroke:var(--sql);stroke-width:3;stroke-dasharray:none;filter:drop-shadow(0 0 6px rgba(242,145,17,.7))}
+.steps{list-style:none;display:flex;flex-direction:column;gap:6px;counter-reset:s}
+.steps li{counter-increment:s;display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:10px;font-size:13.5px;color:var(--mut);transition:.3s;border:1px solid transparent}
+.steps li::before{content:counter(s);flex:none;width:22px;height:22px;border-radius:7px;display:grid;place-items:center;font-size:11px;font-weight:800;background:rgba(255,255,255,.06);font-family:var(--mono)}
+.steps li.on{color:var(--txt);background:rgba(242,145,17,.1);border-color:rgba(242,145,17,.35)}
+.steps li.on::before{background:var(--sql);color:#1a0f00}
+.steps li.done{color:#c9cdea}
+.steps li.done::before{background:rgba(61,220,151,.25);color:var(--ok)}
+.caption{min-height:48px;padding:12px 16px;border-radius:12px;background:rgba(5,6,13,.6);border:1px solid var(--line);font-family:var(--mono);font-size:13.5px;color:var(--warn)}
+
+/* flip cards */
+.flip{perspective:1100px;cursor:pointer;height:270px}
+.flip-in{position:relative;width:100%;height:100%;transition:transform .8s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d}
+.flip.on .flip-in{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:var(--r);border:1px solid var(--line);padding:20px;display:flex;flex-direction:column;background:var(--panel)}
+.face.front{align-items:flex-start;justify-content:space-between;overflow:hidden}
+.face.front .big{font-size:96px;font-weight:800;line-height:.9;letter-spacing:-.05em}
+.face.back{transform:rotateY(180deg);gap:8px;font-size:13.5px}
+.face.back .kv{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--line);padding:5px 0}
+.face.back .kv span:first-child{color:var(--mut)}
+.face .glow{position:absolute;width:180px;height:180px;border-radius:50%;filter:blur(50px);opacity:.45;right:-50px;top:-50px}
+.tap{font-size:12px;color:var(--mut)}
+
+/* tree */
+.tree{font-family:var(--mono);font-size:14px;line-height:2}
+.tree .it{display:flex;align-items:center;gap:8px;padding:2px 10px;border-radius:8px;cursor:pointer;transition:.2s}
+.tree .it:hover,.tree .it.on{background:rgba(124,92,255,.16)}
+.tree .ind{color:#4d5385}
+.xsteps{display:flex;flex-direction:column;gap:12px}
+.xs{display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--line)}
+.xs .n{flex:none;width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--sql),#ff6b3d);display:grid;place-items:center;font-weight:800;font-size:13px;color:#1a0f00}
+
+/* schema */
+.schema{border-radius:14px;overflow:hidden;border:1px solid rgba(242,145,17,.4);background:rgba(10,12,24,.9)}
+.schema .sh{padding:10px 14px;background:linear-gradient(90deg,rgba(242,145,17,.3),rgba(242,145,17,.08));font-weight:800;font-family:var(--mono);display:flex;gap:8px;align-items:center}
+.schema .sc{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-top:1px solid rgba(255,255,255,.05);font-family:var(--mono);font-size:13px;cursor:pointer;transition:.2s}
+.schema .sc:hover,.schema .sc.on{background:rgba(242,145,17,.1)}
+.schema .sc .t{color:var(--mut);font-size:12px}
+
+/* connection */
+.consvg{width:100%;height:150px}
+#conLine{stroke:rgba(140,150,220,.35);stroke-width:3;stroke-dasharray:8 8;fill:none;transition:stroke .3s}
+.consvg.ok #conLine{stroke:var(--ok);animation:dash .8s linear infinite;filter:drop-shadow(0 0 6px rgba(61,220,151,.8))}
+.consvg.fail #conLine{stroke:var(--bad)}
+.consvg .xmark{opacity:0;transition:opacity .3s}
+.consvg.fail .xmark{opacity:1}
+.consvg .okmark{opacity:0;transition:opacity .3s}
+.consvg.ok .okmark{opacity:1}
+.outbox{min-height:60px;background:#fff;color:#111;border-radius:10px;padding:12px 14px;font-family:'Times New Roman',serif;font-size:15px;border:1px solid #ccc}
+.outbox .fatal{color:#b00;font-weight:700}
+
+/* cheat */
+.switch{display:inline-flex;align-items:center;gap:10px;cursor:pointer;user-select:none;font-weight:600;font-size:14px}
+.switch .tr{width:52px;height:28px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid var(--line);position:relative;transition:.3s}
+.switch .tr::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.35s cubic-bezier(.2,.8,.2,1)}
+.switch.on .tr{background:linear-gradient(135deg,var(--violet),var(--blue))}
+.switch.on .tr::after{left:27px}
+.fnc{display:inline-block;font-family:var(--mono);font-size:13px;color:#ffcb6b}
+.fnc.flipx{animation:flipx .5s both}
+@keyframes flipx{0%{transform:rotateX(90deg);opacity:0}100%{transform:none;opacity:1}}
+
+/* demo */
+.vars{font-family:var(--mono);font-size:12.5px;background:#05060d;border:1px solid var(--line);border-radius:10px;padding:10px 12px;line-height:1.7;min-height:60px;white-space:pre-wrap;word-break:break-word}
+.vars .k{color:#c3e88d}.vars .v{color:#ffcb6b}.vars .p{color:#89ddff}
+.inj{color:#fff;background:rgba(255,93,115,.45);border-radius:3px;padding:0 2px}
+.val{color:#1a0f00;background:#ffcb6b;border-radius:3px;padding:0 2px}
+.dbicon{display:inline-flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;border:1px solid rgba(242,145,17,.35);background:rgba(242,145,17,.08);font-weight:700;font-size:13px}
+.dbicon.bump{animation:pop .5s}
+.flyer{position:fixed;z-index:200;pointer-events:none;padding:6px 10px;border-radius:8px;background:linear-gradient(135deg,var(--sql),#ff6b3d);color:#1a0f00;font-family:var(--mono);font-size:12px;font-weight:700;box-shadow:0 8px 24px rgba(242,145,17,.5)}
+
+/* stepper */
+.rs tr.cur td{background:rgba(242,145,17,.18)}
+.rs tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--sql)}
+.rs tr.done td{opacity:.45}
+.htmlout{background:#fff;color:#111;border-radius:10px;padding:10px;font-family:Arial,sans-serif;font-size:13px;min-height:80px;overflow-x:auto}
+.htmlout table{border-collapse:collapse;width:100%}
+.htmlout th,.htmlout td{border:1px solid #999;padding:4px 7px;text-align:left;white-space:nowrap}
+.htmlout th{background:#eee}
+.htmlout tr.new{animation:fadeUp .5s}
+.htmlout a{color:#0645ad}
+
+/* delete list */
+.dl{display:flex;flex-direction:column;gap:8px}
+.di{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--line);transition:all .55s cubic-bezier(.6,0,.3,1);max-height:80px;overflow:hidden}
+.di .av{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:800;font-size:13px;background:linear-gradient(135deg,rgba(124,92,255,.5),rgba(22,179,201,.4))}
+.di .inf{flex:1;min-width:0}
+.di .inf b{display:block;font-size:14px}
+.di .inf span{font-size:12px;color:var(--mut);font-family:var(--mono)}
+.di.gone{transform:translateX(60px) scale(.9);opacity:0;max-height:0;padding-top:0;padding-bottom:0;margin-top:-8px;border-color:var(--bad);background:rgba(255,93,115,.2)}
+
+/* browser mock */
+.bw{border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#f4f5fa;color:#1d2033;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+.bw-bar{display:flex;align-items:center;gap:10px;padding:9px 12px;background:#1b1f36;border-bottom:1px solid var(--line)}
+.bw-url{flex:1;background:#0c0e1c;border-radius:8px;padding:6px 12px;font-family:var(--mono);font-size:12px;color:#aab;display:flex;gap:6px;align-items:center;overflow:hidden;white-space:nowrap}
+.bw-url .lock{color:var(--ok)}
+.bw-body{padding:18px;min-height:380px;max-height:520px;overflow:auto;position:relative}
+.bw-body h4{font-size:18px;font-weight:800;margin-bottom:4px}
+.bw .btn{color:#fff}
+.bw .tbl th{color:#5b6080;background:#e9ebf5;border-color:#d8dbea}
+.bw .tbl td{border-color:#e3e5f0}
+.bw .tblwrap{border-color:#d8dbea;background:#fff}
+.bw input.in,.bw select.in{background:#fff;color:#1d2033;border-color:#cfd3e6}
+.bw label.lb{color:#5b6080}
+.bw .alert{padding:9px 12px;border-radius:9px;font-size:13px;margin-bottom:12px;animation:fadeUp .4s}
+.bw .alert.ok{background:#dcf7ea;color:#0d6b43;border:1px solid #a9e8cb}
+.bw .alert.err{background:#ffe1e6;color:#9b1530;border:1px solid #f6b3c0}
+.lnk{font:inherit;font-size:12.5px;font-weight:700;border:0;background:none;cursor:pointer;padding:3px 6px;border-radius:6px}
+.lnk.e{color:#3b5bdb}.lnk.d{color:#d6334f}
+.lnk:hover{background:rgba(0,0,0,.06)}
+.loading{position:absolute;inset:0;background:rgba(244,245,250,.75);display:grid;place-items:center;font-family:var(--mono);font-size:12px;color:#556;opacity:0;pointer-events:none;transition:opacity .2s}
+.loading.on{opacity:1}
+.spin{width:26px;height:26px;border:3px solid #ccd;border-top-color:var(--violet);border-radius:50%;animation:sp .7s linear infinite;margin:0 auto 8px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* bind game */
+.bg-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--line);flex-wrap:wrap;transition:.3s}
+.bg-item code{flex:1;min-width:180px;font-size:13px}
+.tbtn{font:inherit;font-family:var(--mono);font-weight:700;width:36px;height:34px;border-radius:9px;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--txt);cursor:pointer;transition:.2s}
+.tbtn.on{background:linear-gradient(135deg,var(--violet),var(--blue));border-color:transparent;transform:scale(1.06)}
+.bg-item.right{border-color:rgba(61,220,151,.5);background:rgba(61,220,151,.07)}
+.bg-item.wrong{border-color:rgba(255,93,115,.5);background:rgba(255,93,115,.07)}
+.bg-item .why{width:100%;font-size:12.5px;color:var(--mut);display:none}
+.bg-item.right .why,.bg-item.wrong .why{display:block;animation:fadeUp .3s}
+.typestr{font-family:var(--mono);font-size:28px;font-weight:800;letter-spacing:.2em;color:var(--sql);min-height:40px}
+.typestr span{display:inline-block;animation:pop .35s}
+
+/* login sim */
+.qbox{font-family:var(--mono);font-size:13px;line-height:1.7;background:#05060d;border:1px solid var(--line);border-radius:10px;padding:12px 14px;word-break:break-all;min-height:70px}
+.qbox .kw{color:#c792ea}
+
+/* quiz */
+.qz{display:flex;flex-direction:column;gap:14px}
+.qq{padding:18px;border-radius:14px;background:var(--panel);border:1px solid var(--line)}
+.qq .qt{font-weight:700;margin-bottom:12px;line-height:1.5}
+.qo{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.qo button{font:inherit;text-align:left;font-size:13.5px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--txt);cursor:pointer;transition:.2s}
+.qo button:hover:not(:disabled){background:rgba(124,92,255,.15);border-color:rgba(124,92,255,.45)}
+.qo button.right{background:rgba(61,220,151,.15);border-color:var(--ok);animation:pop .4s}
+.qo button.wrong{background:rgba(255,93,115,.15);border-color:var(--bad);animation:shake .4s}
+.qo button:disabled{cursor:default}
+.qx{display:none;margin-top:10px;font-size:13px;color:var(--mut);line-height:1.6}
+.qq.done .qx{display:block;animation:fadeUp .3s}
+.score{font-size:54px;font-weight:800;font-family:var(--mono)}
+.ring{width:150px;height:150px}
+
+/* misc */
+.check{display:flex;gap:10px;align-items:flex-start;padding:8px 0;cursor:pointer;font-size:14px}
+.check input{margin-top:3px;accent-color:var(--violet);width:16px;height:16px}
+.toc{position:fixed;top:0;right:0;bottom:0;width:340px;max-width:88vw;z-index:100;background:rgba(14,16,30,.97);border-left:1px solid var(--line);transform:translateX(100%);transition:transform .45s cubic-bezier(.2,.8,.2,1);padding:20px;overflow-y:auto;backdrop-filter:blur(14px)}
+.toc.on{transform:none}
+.toc button{display:flex;gap:12px;width:100%;text-align:left;font:inherit;font-size:14px;padding:10px 12px;border-radius:10px;border:0;background:transparent;color:var(--mut);cursor:pointer}
+.toc button:hover{background:rgba(255,255,255,.05);color:var(--txt)}
+.toc button.on{background:rgba(124,92,255,.18);color:var(--txt)}
+.toc button .no{font-family:var(--mono);color:var(--sql);width:24px;flex:none}
+.scrim{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:.3s}
+.scrim.on{opacity:1;pointer-events:auto}
+.modal-bg{position:fixed;inset:0;z-index:300;background:rgba(5,6,13,.65);display:none;place-items:center;backdrop-filter:blur(4px)}
+.modal-bg.on{display:grid}
+.modal{width:min(420px,90vw);background:#161a31;border:1px solid var(--line);border-radius:16px;padding:22px;animation:pop .35s}
+.modal .mt-ic{font-size:30px;margin-bottom:8px}
+.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%) translateY(20px);z-index:400;padding:10px 18px;border-radius:12px;background:#1d2240;border:1px solid var(--line);font-size:14px;opacity:0;transition:.35s;pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.sumc{padding:18px;border-radius:14px;border:1px solid var(--line);background:var(--panel);position:relative;overflow:hidden}
+.sumc .L{font-size:44px;font-weight:800;line-height:1}
+.sumc .glow{position:absolute;width:140px;height:140px;border-radius:50%;filter:blur(45px);opacity:.35;right:-40px;bottom:-40px}
+.exch{display:flex;flex-wrap:wrap;gap:6px}
+.exch button{font:inherit;font-family:var(--mono);font-size:11.5px;padding:5px 9px;border-radius:7px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:#c9cdea;cursor:pointer}
+.exch button:hover{background:rgba(242,145,17,.15);border-color:rgba(242,145,17,.4)}
+
+@media (max-width:980px){
+  .g2,.g3,.g-sim,.cover{grid-template-columns:1fr}
+  .g4{grid-template-columns:1fr 1fr}
+  .slide{padding:22px 16px 40px}
+  .top .meta,.hint{display:none}
+  .qo{grid-template-columns:1fr}
+  .cover-art{order:-1;max-width:460px}
+}
+@media (max-width:560px){.g4,.fgrid{grid-template-columns:1fr}.face.front .big{font-size:72px}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+<script>window.Prism = window.Prism || {}; window.Prism.manual = true;</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup-templating.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+</head>
+<body>
+<div class="bg">
+  <div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+  <div class="grid"></div>
+  <div id="syms"></div>
+</div>
+
+<header class="top">
+  <div class="brand"><div class="logo">&lt;?</div><span>Pemrograman Web I</span></div>
+  <span class="meta">Pertemuan 10 · PHP + MySQLi · CRUD · Teknik Informatika UMA</span>
+  <div class="sp"></div>
+  <span class="counter" id="counter">1 / 19</span>
+  <button class="btn sm" id="tocBtn" aria-label="Daftar slide">☰ Daftar Materi</button>
+</header>
+
+<main class="stage" id="stage">
+
+<!-- 1 COVER -->
+<section class="slide" id="s-cover" data-title="Pembuka">
+  <div class="wrap cover">
+    <div>
+      <div class="pill a"><span class="live"></span><b>Pertemuan 10</b> · Pemrograman Web I</div>
+      <h1 class="a">PHP <span class="grad">+ MySQLi</span></h1>
+      <h2 class="a" style="font-weight:600;color:var(--mut);margin-top:12px">Membangun Aplikasi <span style="color:var(--txt)">CRUD</span> Pertama Anda</h2>
+      <p class="lead a" style="margin-top:14px">Belajar menghubungkan PHP dengan database MySQL, lalu membuat fitur <b>Create, Read, Update, Delete</b> lengkap dengan simulasi interaktif yang bisa langsung Anda coba di browser.</p>
+      <div class="term a"><span class="pr">php&gt; </span><span id="typer"></span><span class="caret"></span></div>
+      <div class="lect a"><div class="lav">RM</div><div><b>Rizki Muliono, S.Kom, M.Kom</b><span>Teknik Informatika · Universitas Medan Area</span></div></div>
+      <div class="row a mt"><button class="btn pri" data-go="1">Mulai Belajar →</button><button class="btn" data-go="s-sim">Langsung ke Simulator</button></div>
+    </div>
+    <div class="cover-art a">
+      <svg viewBox="0 0 520 440" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="gv" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#5b7cff"/></linearGradient>
+          <linearGradient id="go" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f29111"/><stop offset="1" stop-color="#ff6b3d"/></linearGradient>
+          <linearGradient id="gt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#16b3c9"/><stop offset="1" stop-color="#3ddc97"/></linearGradient>
+        </defs>
+        <path id="cp1" d="M130 120 C 230 60, 300 60, 380 150" class="flowline" stroke="#7c5cff" stroke-width="2.5" fill="none"/>
+        <path id="cp2" d="M390 230 C 360 320, 280 360, 200 340" class="flowline" stroke="#f29111" stroke-width="2.5" fill="none"/>
+        <path id="cp3" d="M150 300 C 90 260, 80 200, 110 170" class="flowline" stroke="#16b3c9" stroke-width="2.5" fill="none"/>
+        <circle r="6" fill="#b9a8ff"><animateMotion dur="2.6s" repeatCount="indefinite"><mpath href="#cp1"/></animateMotion></circle>
+        <circle r="6" fill="#ffb35c"><animateMotion dur="2.6s" begin="0.9s" repeatCount="indefinite"><mpath href="#cp2"/></animateMotion></circle>
+        <circle r="6" fill="#86e6f2"><animateMotion dur="2.6s" begin="1.7s" repeatCount="indefinite"><mpath href="#cp3"/></animateMotion></circle>
+        <!-- browser -->
+        <g class="bob">
+          <rect x="20" y="60" width="180" height="130" rx="14" fill="#151829" stroke="url(#gt)" stroke-width="2"/>
+          <rect x="20" y="60" width="180" height="26" rx="14" fill="#1d2240"/>
+          <circle cx="38" cy="73" r="4" fill="#ff5f57"/><circle cx="52" cy="73" r="4" fill="#febc2e"/><circle cx="66" cy="73" r="4" fill="#28c840"/>
+          <rect x="36" y="100" width="148" height="12" rx="4" fill="#2a3060"/>
+          <rect x="36" y="120" width="110" height="10" rx="4" fill="#232850"/>
+          <rect x="36" y="138" width="130" height="10" rx="4" fill="#232850"/>
+          <rect x="36" y="160" width="60" height="18" rx="6" fill="url(#gt)"/>
+          <text x="110" y="214" text-anchor="middle" fill="#9aa0c3" font-size="13" font-family="Plus Jakarta Sans" font-weight="700">Browser</text>
+        </g>
+        <!-- php server -->
+        <g class="bob bob2">
+          <rect x="320" y="140" width="180" height="96" rx="16" fill="#151829" stroke="url(#gv)" stroke-width="2"/>
+          <text x="410" y="186" text-anchor="middle" fill="#cfc4ff" font-size="28" font-family="JetBrains Mono" font-weight="700">&lt;?php</text>
+          <text x="410" y="212" text-anchor="middle" fill="#9aa0c3" font-size="12" font-family="JetBrains Mono">server.php</text>
+          <text x="410" y="260" text-anchor="middle" fill="#9aa0c3" font-size="13" font-family="Plus Jakarta Sans" font-weight="700">Web Server + PHP</text>
+        </g>
+        <!-- db -->
+        <g class="bob bob3">
+          <path d="M100 300 v70 a70 22 0 0 0 140 0 v-70" fill="#1a1d36" stroke="url(#go)" stroke-width="2"/>
+          <ellipse cx="170" cy="300" rx="70" ry="22" fill="#232850" stroke="url(#go)" stroke-width="2"/>
+          <path d="M100 335 a70 22 0 0 0 140 0" fill="none" stroke="rgba(242,145,17,.5)" stroke-width="1.5"/>
+          <text x="170" y="306" text-anchor="middle" fill="#ffc47a" font-size="13" font-family="JetBrains Mono" font-weight="700">db_kampus</text>
+          <text x="170" y="420" text-anchor="middle" fill="#9aa0c3" font-size="13" font-family="Plus Jakarta Sans" font-weight="700">MySQL</text>
+        </g>
+        <text x="270" y="64" fill="#b9a8ff" font-size="12" font-family="JetBrains Mono">HTTP Request</text>
+        <text x="330" y="330" fill="#ffb35c" font-size="12" font-family="JetBrains Mono">SQL Query</text>
+        <text x="20" y="250" fill="#86e6f2" font-size="12" font-family="JetBrains Mono">HTML</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- 2 TUJUAN -->
+<section class="slide" id="s-goal" data-title="Tujuan & Peta Materi">
+  <div class="wrap">
+    <div class="head"><div class="kicker a">Capaian Pembelajaran</div><h2 class="a">Setelah pertemuan ini, Anda mampu…</h2></div>
+    <div class="g2">
+      <div class="col">
+        <div class="card obj a"><div class="n">1</div><div><h3>Menjelaskan alur aplikasi web dinamis</h3><p class="mut small">Bagaimana Browser, PHP, dan MySQL saling berkomunikasi dalam satu request.</p></div></div>
+        <div class="card obj a"><div class="n">2</div><div><h3>Membuat koneksi PHP ke MySQL</h3><p class="mut small">Menggunakan ekstensi <span class="ic">MySQLi</span>, gaya procedural maupun OOP.</p></div></div>
+        <div class="card obj a"><div class="n">3</div><div><h3>Mengimplementasikan operasi CRUD</h3><p class="mut small">INSERT, SELECT, UPDATE, DELETE melalui form HTML dan PHP.</p></div></div>
+        <div class="card obj a"><div class="n">4</div><div><h3>Menulis kode yang aman</h3><p class="mut small">Mencegah SQL Injection dengan <i>prepared statement</i> dan XSS dengan <span class="ic">htmlspecialchars()</span>.</p></div></div>
+      </div>
+      <div class="card a">
+        <h3>🗺️ Peta Materi <span class="mut small" style="font-weight:500">(klik untuk lompat)</span></h3>
+        <div class="agenda mt2">
+          <button class="chip" data-go="s-flow"><span class="k">01</span>Alur Request</button>
+          <button class="chip" data-go="s-crud"><span class="k">02</span>Konsep CRUD</button>
+          <button class="chip" data-go="s-setup"><span class="k">03</span>Persiapan XAMPP</button>
+          <button class="chip" data-go="s-db"><span class="k">04</span>Database & Tabel</button>
+          <button class="chip" data-go="s-conn"><span class="k">05</span>Koneksi MySQLi</button>
+          <button class="chip" data-go="s-cheat"><span class="k">06</span>Fungsi MySQLi</button>
+          <button class="chip" data-go="s-create"><span class="k">07</span>CREATE</button>
+          <button class="chip" data-go="s-read"><span class="k">08</span>READ</button>
+          <button class="chip" data-go="s-fetch"><span class="k">09</span>Metode Fetch</button>
+          <button class="chip" data-go="s-update"><span class="k">10</span>UPDATE</button>
+          <button class="chip" data-go="s-delete"><span class="k">11</span>DELETE</button>
+          <button class="chip" data-go="s-sqli"><span class="k">12</span>SQL Injection</button>
+          <button class="chip" data-go="s-bind"><span class="k">13</span>bind_param</button>
+          <button class="chip" data-go="s-sim"><span class="k">14</span>Simulator CRUD</button>
+          <button class="chip" data-go="s-console"><span class="k">15</span>SQL Console</button>
+          <button class="chip" data-go="s-quiz"><span class="k">16</span>Kuis</button>
+          <button class="chip" data-go="s-end"><span class="k">17</span>Ringkasan & Tugas</button>
+        </div>
+        <div class="note v mt">💡 <b>Studi kasus</b> sepanjang pertemuan: aplikasi <b>Data Mahasiswa</b> dengan tabel <span class="ic">mahasiswa</span> (id, nim, nama, prodi, ipk).</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 FLOW -->
+<section class="slide" id="s-flow" data-title="Alur Request Web Dinamis">
+  <div class="wrap">
+    <div class="head"><div class="kicker a">01 · Arsitektur</div><h2 class="a">Bagaimana halaman web dinamis bekerja?</h2><p class="lead a">PHP berjalan di <b>server</b>, bukan di browser. Browser hanya menerima hasil akhirnya berupa HTML. Tekan <b>Jalankan</b> untuk melihat perjalanan satu request.</p></div>
+    <div class="card a">
+      <svg class="flowsvg" viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg">
+        <path id="fp1" class="fpath" d="M175 120 Q300 30 395 120"/>
+        <path id="fp2" class="fpath" d="M505 120 Q620 30 725 120"/>
+        <path id="fp3" class="fpath" d="M725 180 Q620 270 505 180"/>
+        <path id="fp4" class="fpath" d="M395 180 Q300 270 175 180"/>
+        <g class="node" id="nB"><rect x="45" y="100" width="130" height="100" rx="16"/><text x="110" y="145" text-anchor="middle" font-size="26">🌐</text><text x="110" y="172" text-anchor="middle" font-size="15">Browser</text><text class="sub" x="110" y="190" text-anchor="middle">Client</text></g>
+        <g class="node" id="nP"><rect x="395" y="100" width="110" height="100" rx="16"/><text x="450" y="145" text-anchor="middle" font-size="22" font-family="JetBrains Mono" fill="#cfc4ff">&lt;?php</text><text x="450" y="172" text-anchor="middle" font-size="15">Apache + PHP</text><text class="sub" x="450" y="190" text-anchor="middle">Server</text></g>
+        <g class="node" id="nM"><rect x="725" y="100" width="130" height="100" rx="16"/><text x="790" y="145" text-anchor="middle" font-size="26">🛢️</text><text x="790" y="172" text-anchor="middle" font-size="15">MySQL</text><text class="sub" x="790" y="190" text-anchor="middle">Database</text></g>
+        <text x="285" y="52" text-anchor="middle" fill="#82aaff" font-size="12" font-family="JetBrains Mono">HTTP Request</text>
+        <text x="615" y="52" text-anchor="middle" fill="#ffb35c" font-size="12" font-family="JetBrains Mono">Query (MySQLi)</text>
+        <text x="615" y="262" text-anchor="middle" fill="#3ddc97" font-size="12" font-family="JetBrains Mono">Result Set</text>
+        <text x="285" y="262" text-anchor="middle" fill="#86e6f2" font-size="12" font-family="JetBrains Mono">HTTP Response (HTML)</text>
+        <circle id="packet" r="9" fill="#ffb35c" opacity="0" style="filter:drop-shadow(0 0 8px #f29111)"/>
+      </svg>
+      <div class="g2 mt">
+        <ol class="steps" id="flowSteps">
+          <li>Pengguna membuka <span class="ic">localhost/crud/index.php</span>; browser mengirim HTTP GET.</li>
+          <li>Apache menyerahkan file <span class="ic">.php</span> ke PHP interpreter.</li>
+          <li>PHP mengirim query <span class="ic">SELECT * FROM mahasiswa</span> lewat MySQLi.</li>
+          <li>MySQL mengeksekusi query pada tabel.</li>
+          <li>MySQL mengembalikan <i>result set</i> (baris-baris data) ke PHP.</li>
+          <li>PHP merangkai data menjadi HTML lalu mengirim response 200 OK.</li>
+          <li>Browser menampilkan tabel. Kode PHP tidak pernah terlihat oleh pengguna.</li>
+        </ol>
+        <div class="col">
+          <div class="caption" id="flowCap">Tekan ▶ Jalankan untuk memulai animasi…</div>
+          <div class="row"><button class="btn org" id="flowPlay">▶ Jalankan</button><button class="btn" id="flowStep">Langkah berikutnya</button><button class="btn ghost" id="flowReset">↺ Reset</button></div>
+          <div class="note">Inilah alasan file PHP harus dibuka lewat <span class="ic">http://localhost/…</span>, <b>bukan</b> dengan klik dua kali file (<span class="ic">file:///</span>). Tanpa web server, kode PHP tidak dieksekusi.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 CRUD -->
+<section class="slide" id="s-crud" data-title="Konsep CRUD">
+  <div class="wrap">
+    <div class="head"><div class="kicker a">02 · Konsep</div><h2 class="a">CRUD = 4 operasi dasar pengelolaan data</h2><p class="lead a">Hampir semua aplikasi (e-commerce, SIAKAD, media sosial) dibangun dari empat operasi ini. <b>Klik kartu</b> untuk membalik dan melihat padanannya di SQL, HTTP, dan file PHP.</p></div>
+    <div class="g4">
+      <div class="flip a"><div class="flip-in">
+        <div class="face front"><div class="glow" style="background:#3ddc97"></div><span class="badge g">Create</span><div class="big" style="color:#3ddc97">C</div><div><b>Menambah data baru</b><div class="tap">Contoh: mendaftarkan mahasiswa baru ↻</div></div></div>
+        <div class="face back"><h3 style="color:#3ddc97">Create</h3><div class="kv"><span>SQL</span><b class="mono">INSERT INTO</b></div><div class="kv"><span>HTTP</span><b class="mono">POST</b></div><div class="kv"><span>File</span><b class="mono">tambah.php</b></div><code class="small mono" style="color:#c3e88d;margin-top:6px">INSERT INTO mahasiswa (nim, nama) VALUES ('2214…', 'Budi');</code></div>
+      </div></div>
+      <div class="flip a"><div class="flip-in">
+        <div class="face front"><div class="glow" style="background:#5b7cff"></div><span class="badge">Read</span><div class="big" style="color:#82aaff">R</div><div><b>Membaca / menampilkan data</b><div class="tap">Contoh: daftar semua mahasiswa ↻</div></div></div>
+        <div class="face back"><h3 style="color:#82aaff">Read</h3><div class="kv"><span>SQL</span><b class="mono">SELECT</b></div><div class="kv"><span>HTTP</span><b class="mono">GET</b></div><div class="kv"><span>File</span><b class="mono">index.php</b></div><code class="small mono" style="color:#c3e88d;margin-top:6px">SELECT * FROM mahasiswa ORDER BY nama;</code></div>
+      </div></div>
+      <div class="flip a"><div class="flip-in">
+        <div class="face front"><div class="glow" style="background:#ffd166"></div><span class="badge o">Update</span><div class="big" style="color:#ffd166">U</div><div><b>Mengubah data yang ada</b><div class="tap">Contoh: memperbarui IPK ↻</div></div></div>
+        <div class="face back"><h3 style="color:#ffd166">Update</h3><div class="kv"><span>SQL</span><b class="mono">UPDATE … SET</b></div><div class="kv"><span>HTTP</span><b class="mono">GET (form) + POST</b></div><div class="kv"><span>File</span><b class="mono">edit.php</b></div><code class="small mono" style="color:#c3e88d;margin-top:6px">UPDATE mahasiswa SET ipk = 3.80 WHERE id = 2;</code></div>
+      </div></div>
+      <div class="flip a"><div class="flip-in">
+        <div class="face front"><div class="glow" style="background:#ff5d73"></div><span class="badge r">Delete</span><div class="big" style="color:#ff5d73">D</div><div><b>Menghapus data</b><div class="tap">Contoh: menghapus mahasiswa lulus ↻</div></div></div>
+        <div class="face back"><h3 style="color:#ff5d73">Delete</h3><div class="kv"><span>SQL</span><b class="mono">DELETE FROM</b></div><div class="kv"><span>HTTP</span><b class="mono">GET / POST</b></div><div class="kv"><span>File</span><b class="mono">hapus.php</b></div><code class="small mono" style="color:#c3e88d;margin-top:6px">DELETE FROM mahasiswa WHERE id = 5;</code></div>
+      </div></div>
+    </div>
+    <div class="note v mt a">🎯 <b>Analogi:</b> bayangkan buku absensi kelas. Menulis nama baru = <b>Create</b>, membaca daftar hadir = <b>Read</b>, mengoreksi nama yang salah ketik = <b>Update</b>, mencoret nama yang pindah kelas = <b>Delete</b>.</div>
+  </div>
+</section>
+
+<!-- 5 SETUP -->
+<section class="slide" id="s-setup" data-title="Persiapan & Struktur Folder">
+  <div class="wrap">
+    <div class="head"><div class="kicker a">03 · Persiapan</div><h2 class="a">Siapkan lingkungan kerja</h2><p class="lead a">Gunakan <b>XAMPP</b> (Apache + PHP + MySQL/MariaDB + phpMyAdmin dalam satu paket).</p></div>
+    <div class="g2">
+      <div class="xsteps">
+        <div class="xs a"><div class="n">1</div><div><b>Start Apache &amp; MySQL</b><p class="mut small">Buka XAMPP Control Panel, klik <b>Start</b> pada modul Apache dan MySQL sampai berwarna hijau.</p></div></div>
+        <div class="xs a"><div class="n">2</div><div><b>Buat folder proyek</b><p class="mut small"><span class="ic">C:\xampp\htdocs\crud-mahasiswa</span> (Linux: <span class="ic">/opt/lampp/htdocs/</span>)</p></div></div>
+        <div class="xs a"><div class="n">3</div><div><b>Buat database</b><p class="mut small">Buka <span class="ic">http://localhost/phpmyadmin</span>, lalu jalankan script SQL di slide berikutnya.</p></div></div>
+        <div class="xs a"><div class="n">4</div><div><b>Akses aplikasi</b><p class="mut small">Buka <span class="ic">http://localhost/crud-mahasiswa/</span> di browser.</p></div></div>
+      </div>
+      <div class="card a">
+        <h3>📁 Struktur Proyek <span class="mut small" style="font-weight:500">(klik file)</span></h3>
+        <div class="tree mt2" id="tree">
+          <div class="it" data-f="root">📂 <b>crud-mahasiswa/</b></div>
+          <div class="it" data-f="koneksi"><span class="ind">├──</span>⚙️ koneksi.php</div>
+          <div class="it" data-f="index"><span class="ind">├──</span>📄 index.php <span class="badge">R</span></div>
+          <div class="it" data-f="tambah"><span class="ind">├──</span>📄 tambah.php <span class="badge g">C</span></div>
+          <div class="it" data-f="edit"><span class="ind">├──</span>📄 edit.php <span class="badge o">U</span></div>
+          <div class="it" data-f="hapus"><span class="ind">├──</span>📄 hapus.php <span class="badge r">D</span></div>
+          <div class="it" data-f="sql"><span class="ind">└──</span>🗄️ db_kampus.sql</div>
+        </div>
+        <div class="note v mt2" id="treeInfo">Pilih salah satu file untuk melihat perannya.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 DB -->
+<section class="slide" id="s-db" data-title="Membuat Database & Tabel">
+  <div class="wrap">
+    <div class="head"><div class="kicker a">04 · Database</div><h2 class="a">Membuat database <span class="grad">db_kampus</span></h2><p class="lead a">Jalankan script berikut di tab <b>SQL</b> phpMyAdmin. Perhatikan setiap kolom dan tipe datanya.</p></div>
+    <div class="g2">
+      <div class="a">
+        <div class="codebox"><div class="cb-head"><span class="dots"><i></i><i></i><i></i></span><span class="fn">db_kampus.sql</span><button class="copy">Salin</button></div><pre><code class="language-sql" data-snip="sql_create" id="sqlType"></code></pre></div>
+        <div class="row mt2"><button class="btn sm" id="sqlSkip">⏭ Tampilkan langsung</button><button class="btn sm ghost" id="sqlReplay">↺ Ketik ulang</button></div>
+      </div>
+      <div class="col">
+        <div class="schema a" id="schema">
+          <div class="sh">🗂️ mahasiswa</div>
+          <div class="sc" data-c="id"><span>🔑 id</span><span class="t">INT · AUTO_INCREMENT · PK</span></div>
+          <div class="sc" data-c="nim"><span>nim</span><span class="t">VARCHAR(15) · UNIQUE</span></div>
+          <div class="sc" data-c="nama"><span>nama</span><span class="t">VARCHAR(100) · NOT NULL</span></div>
+          <div class="sc" data-c="prodi"><span>prodi</span><span class="t">VARCHAR(50)</span></div>
+          <div class="sc" data-c="ipk"><span>ipk</span><span class="t">DECIMAL(3,2)</span></div>
+        </div>
+        <div class="note v a" id="colInfo">👆 Klik nama kolom untuk penjelasan.</div>
+        <div class="note a">❓ <b>Mengapa NIM bertipe VARCHAR, bukan INT?</b> NIM tidak dihitung (tidak dijumlah/dirata-rata) dan bisa diawali angka 0. Data "angka" yang bukan untuk perhitungan sebaiknya disimpan sebagai teks.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 KONEKSI -->
+<section class="slide" id="s-conn" data-title="Koneksi PHP ke MySQL">
+  <div class="wrap">
+    <div class="head"><div class="kicker a">05 · Koneksi</div><h2 class="a">Menghubungkan PHP ke MySQL dengan MySQLi</h2><p class="lead a">File <span class="ic">koneksi.php</span> dibuat <b>sekali</b>, lalu di-<span class="ic">include</span> oleh semua halaman lain. Ada tiga gaya penulisan:</p></div>
+    <div class="g2">
+      <div class="a">
+        <div class="tabs" data-group="kon"><button class="on" data-t="kon-proc">Procedural</button><button data-t="kon-oop">OOP</button><button data-t="kon-try">try–catch (PHP 8.1+)</button></div>
+        <div class="pane on" data-pane="kon" id="kon-proc"><div class="codebox"><div class="cb-head"><span class="dots"><i></i><i></i><i></i></span><span class="fn">koneksi.php</span><button class="copy">Salin</button></div><pre><code class="language-php" data-snip="kon_proc"></code></pre></div></div>
+        <div class="pane" data-pane="kon" id="kon-oop"><div class="codebox"><div class="cb-head"><span class="dots"><i></i><i></i><i></i></span><span class="fn">koneksi.php</span><button class="copy">Salin</button></div><pre><code class="language-php" data-snip="kon_oop"></code></pre></div></div>
+        <div class="pane" data-pane="kon" id="kon-try"><div class="codebox"><div class="cb-head"><span class="dots"><i></i><i></i><i></i></span><span class="fn">koneksi.php</span><button class="copy">Salin</button></div><pre><code class="language-php" data-snip="kon_try"></code></pre></div>
+          <div class="note mt2">Sejak PHP 8.1, MySQLi secara default <b>melempar exception</b> saat gagal. Karena itu <span class="ic">try–catch</span> adalah cara paling rapi untuk menangkap error koneksi.</div></div>
+      </div>
+      <div class="card a">
+        <h3>🔌 Simulator Koneksi</h3>
+        <p class="mut small">Ubah nilai lalu klik <b>Hubungkan</b>. Coba isi password yang salah atau nama database yang tidak ada!</p>
+        <div class="fgrid mt2">
+          <div><label class="lb">$host</label><input class="in" id="cHost" value="localhost"></div>
+          <div><label class="lb">$user</label><input class="in" id="cUser" value="root"></div>
+          <div><label class="lb">$pass</label><input class="in" id="cPass" value="" placeholder="(kosong, default XAMPP)"></div>
+          <div><label class="lb">$db</label><input class="in" id="cDb" value="db_kampus"></div>
+        </div>
+        <svg class="consvg mt2" id="conSvg" viewBox="0 0 460 150">
+          <rect x="20" y="40" width="110" height="70" rx="14" fill="#1d2240" stroke="#7c5cff" stroke-width="2"/>
+          <text x="75" y="82" text-anchor="middle" fill="#cfc4ff" font-family="JetBrains Mono" font-weight="700" font-size="18">PHP</text>
+          <path id="conLine" d="M130 75 L330 75"/>
+          <g class="xmark"><circle cx="230" cy="75" r="16" fill="#ff5d73"/><text x="230" y="81" text-anchor="middle" fill="#fff" font-weight="800" font-size="18">✕</text></g>
+          <g class="okmark"><circle cx="230" cy="75" r="16" fill="#3ddc97"/><text x="230" y="81" text-anchor="middle" fill="#06150e" font-weight="800" font-size="16">✓</text></g>
+          <path d="M340 50 v50 a50 15 0 0 0 100 0 v-50" fill="#1a1d36" stroke="#f29111" stroke-width="2"/>
+          <ellipse cx="390" cy="50" rx="50" ry="15" fill="#232850" stroke="#f29111" stroke-width="2"/>
+          <text x="390" y="95" text-anchor="middle" fill="#ffc47a" font-family="JetBrains Mono" font-weight="700" font-size="13">MySQL</text>
+        </svg>
+        <div class="row"><button class="btn org" id="cGo">⚡ Hubungkan</button><button class="btn ghost sm" id="cReset">↺ Default</button></div>
+        <label class="lb mt">Output di browser:</label>
+        <div class="outbox" id="cOut"><span style="color:#888">(belum dijalankan)</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 CHEAT -->
+<section class="slide" id="s-cheat" data-title="Fungsi Penting MySQLi">
+  <div class="wrap">
+    <div class="head"><div class="kicker a">06 · Referensi</div><h2 class="a">Fungsi penting MySQLi: Procedural vs OOP</h2><p class="lead a">Keduanya melakukan hal yang <b>sama persis</b>, hanya berbeda cara penulisan. Pilih satu gaya dan <b>konsisten</b> dalam satu proyek.</p></div>
+    <div class="row a mb"><div class="switch" id="styleSw"><span>Procedural</span><span class="tr"></span><span>OOP</span></div></div>
+    <div class="card a" style="padding:0;overflow:hidden">
+      <div class="tblwrap" style="border:0;border-radius:0"><table class="tbl"><thead><tr><th>Operasi</th><th>Sintaks</th><th>Keterangan</th></tr></thead><tbody id="cheatBody"></tbody></table></div>
+    </div>
+    <div class="note v mt a">📌 Pada gaya OOP, <span class="ic">-&gt;</span> dibaca "panah objek": <span class="ic">$conn-&gt;query()</span> berarti "panggil method <i>query</i> milik objek <i>$conn</i>".</div>
+  </div>
+</section>
+
+<!-- 9 CREATE -->
+<section class="slide" id="s-create" data-title="CREATE · Menambah Data">
+  <div class="wrap">
+    <div class="head"><div class="kicker a" style="color:var(--ok)">07 · Create</div><h2 class="a">CREATE: menyimpan data dari form ke database</h2><p class="lead a">Data dari form dikirim dengan <span class="ic">method="POST"</span>, diterima PHP di <span class="ic">$_POST</span>, lalu disimpan dengan <span class="ic">INSERT INTO</span>.</p></div>
+    <div class="g2">
+      <div class="a">
+        <div class="tabs" data-group="cr"><button class="on" data-t="cr-form">① Form HTML</button><button data-t="cr-basic">② Proses (dasar)</button><button data-t="cr-safe">③ Proses (aman ✓)</button></div>
+        <div class="pane on" data-pane="cr" id="cr-form"><div class="codebox"><div class="cb-head"><span class="dots"><i></i><i></i><i></i></span><span class="fn">tambah.php · form</span><button class="copy">Salin</button></div><pre><code class="language-markup" data-snip="cr_form"></code></pre></div></div>
+        <div class="pane" data-pane="cr" id="cr-basic"><div class="codebox"><div class="cb-head"><span class="dots"><i></i><i></i><i></i></span><span class="fn">tambah.php · proses</span><button class="copy">Salin</button></div><pre><code class="language-php" data-snip="cr_basic"></code></pre></div><div class="note r mt2">⚠️ Versi dasar mudah dipahami, tetapi <b>rentan SQL Injection</b> karena input langsung disisipkan ke string SQL. Lihat slide SQL Injection.</div></div>
+        <div class="pane" data-pane="cr" id="cr-safe"><div class="codebox"><div class="cb-head"><span class="dots"><i></i><i></i><i></i></span><span class="fn">tambah.php · proses</span><button class="copy">Salin</button></div><pre><code class="language-php" data-snip="cr_safe"></code></pre></div><div class="note g mt2">✅ Gunakan versi ini di proyek nyata. Tanda <span class="ic">?</span> adalah <i>placeholder</i> yang diisi secara aman oleh <span class="ic">bind_param()</span>.</div></div>
+      </div>
+      <div class="card a" id="crCard">
+        <div class="row" style="justify-content:space-between"><h3>🧪 Coba isi form</h3><span class="dbicon" id="crDb">🛢️ mahasiswa: <span id="crCount">5</span> baris</span></div>
+        <form id="crForm" class="fgrid mt2" autocomplete="off">
+          <div><label class="lb">NIM</label><input class="in" name="nim" placeholder="221401050"></div>
+          <div><label class="lb">Nama</label><input class="in" name="nama" placeholder="Budi Santoso"></div>
+          <div><label class="lb">Prodi</label><select class="in" name="prodi"><option>Ilmu Komputer</option><option>Teknologi Informasi</option></select></div>
+          <div><label class="lb">IPK</label><input class="in" name="ipk" type="number" step="0.01" min="0" max="4" placeholder="3.50"></div>
+          <div style="grid-column:1/-1" class="row"><button class="btn grn" type="submit">💾 Simpan</button><button class="btn sm ghost" type="button" id="crFill">🎲 Isi contoh</button><button class="btn sm ghost" type="button" id="crEvil">😈 Isi nama dengan tanda petik</button></div>
+        </form>
+        <label class="lb mt">Isi <span class="ic">$_POST</span> yang diterima PHP:</label>
+        <div class="vars" id="crPost"></div>
+        <label class="lb mt2">Query versi dasar yang terbentuk:</label>
+        <div class="qbox" id="crSql"></div>
+        <div id="crRes" class="mt2"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 READ -->
+<section class="slide" id="s-read" data-title="READ · Menampilkan Data">
+  <div class="wrap">
+    <div class="head"><div class="kicker a" style="color:#82aaff">08 · Read</div><h2 class="a">READ: menampilkan data dengan perulangan <span class="ic" style="font-size:.7em">while</span></h2><p class="lead a"><span class="ic">mysqli_fetch_assoc()</span> mengambil <b>satu baris</b> setiap kali dipanggil. Saat data habis ia mengembalikan <span class="ic">NULL</span>, dan loop berhenti. Jalankan langkah demi langkah!</p></div>
+    <div class="g2">
+      <div class="a"><div class="codebox"><div class="cb-head"><span class="dots"><i></i><i></i><i></i></span><span class="fn">index.php</span><button class="copy">Salin</button></div><pre><code class="language-php" data-snip="rd_index"></code></pre></div></div>
+      <div class="col a">
+        <div class="row"><button class="btn pri" id="rdStep">▶ fetch_assoc() berikutnya</button><button class="btn" id="rdAuto">⏩ Otomatis</button><button class="btn ghost sm" id="rdReset">↺ Reset</button></div>
+        <div><label class="lb">$result (result set dari MySQL)</label><div class="tblwrap"><table class="tbl rs" id="rdRs"></table></div></div>
+        <div><label class="lb">Isi variabel <span class="ic">$row</span> saat ini</label><div class="vars" id="rdRow"><span class="c-mut">// belum ada iterasi</span></div></div>
+        <div><label class="lb">Output HTML di browser</label><div class="htmlout" id="rdOut"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 FETCH -->
+<section class="slide" id="s-fetch" data-title="Metode Fetch">
+  <div class="wrap">
+    <div class="head"><div class="kicker a">09 · Fetch</div><h2 class="a">Satu baris data, banyak cara mengambilnya</h2><p class="lead a">Klik setiap metode dan bandingkan bentuk hasilnya (ditampilkan dengan <span class="ic">print_r()</span>).</p></div>
+    <div class="g2">
+      <div class="col a" id="fetchBtns">
+        <button class="btn" data-m="assoc" style="justify-content:space-between"><span class="mono">fetch_assoc()</span><span class="badge g">paling sering</span></button>
+        <button class="btn" data-m="row" style="justify-content:space-between"><span class="mono">fetch_row()</span><span class="badge">indeks angka</span></button>
+        <button class="btn" data-m="array" style="justify-content:space-between"><span class="mono">fetch_array()</span><span class="badge o">keduanya</span></button>
+        <button class="btn" data-m="object" style="justify-content:space-between"><span class="mono">fetch_object()</span><span class="badge t">objek</span></button>
+        <button class="btn" data-m="all" style="justify-content:space-between"><span class="mono">fetch_all(MYSQLI_ASSOC)</span><span class="badge r">semua sekaligus</span></button>
+        <div class="note v" id="fetchInfo">Pilih metode di atas.</div>
+      </div>
+      <div class="a">
+        <div class="codebox"><div class="cb-head"><span class="dots"><i></i><i></i><i></i></span><span class="fn" id="fetchFn">output</span></div><pre id="fetchOut" style="min-height:340px;color:#c3e88d">// hasil print_r() akan muncul di sini</pre></div>
+        <div class="qbox mt2" id="fetchAccess">Cara mengakses kolom <b>nama</b>: …</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 UPDATE -->
+<section class="slide" id="s-update" data-title="UPDATE · Mengubah Data">
+  <div class="wrap">
+    <div class="head"><div class="kicker a" style="color:var(--warn)">10 · Update</div><h2 class="a">UPDATE: dua langkah, ambil lalu ubah</h2><p class="lead a"><b>(1)</b> Ambil data lama berdasarkan <span class="ic">id</span> dari URL untuk mengisi form, lalu <b>(2)</b> simpan perubahan dengan <span class="ic">UPDATE … SET … WHERE</span>.</p></div>
+    <div class="g2">
+      <div class="a"><div class="codebox"><div class="cb-head"><span class="dots"><i></i><i></i><i></i></span><span class="fn">edit.php</span><button class="copy">Salin</button></div><pre><code class="language-php" data-snip="up_edit"></code></pre></div></div>
+      <div class="card a" id="upCard">
+        <h3>🧪 Eksperimen: pentingnya <span class="ic">WHERE</span></h3>
+        <div class="fgrid mt2">
+          <div><label class="lb">Kolom</label><select class="in" id="upCol"><option value="ipk">ipk</option><option value="prodi">prodi</option><option value="nama">nama</option></select></div>
+          <div><label class="lb">Nilai baru</label><input class="in" id="upVal" value="3.99"></div>
+          <div><label class="check" style="padding:9px 0 0"><input type="checkbox" id="upWhere" checked> Pakai <b class="mono">WHERE id =</b></label></div>
+          <div><select class="in" id="upId"></select></div>
+        </div>
+        <div class="qbox mt2"><code class="language-sql" id="upSql"></code></div>
+        <div class="row mt2"><button class="btn org" id="upRun">▶ Jalankan UPDATE</button><button class="btn ghost sm" id="upReset">↺ Reset data</button></div>
+        <div id="upMsg" class="mt2"></div>
+        <div class="tblwrap mt2"><table class="tbl" id="upTbl"></table></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 DELETE -->
+<section class="slide" id="s-delete" data-title="DELETE · Menghapus Data">
+  <div class="wrap">
+    <div class="head"><div class="kicker a" style="color:var(--bad)">11 · Delete</div><h2 class="a">DELETE: hapus berdasarkan <span class="ic" style="font-size:.7em">id</span>, selalu dengan konfirmasi</h2><p class="lead a">Link hapus mengirim <span class="ic">id</span> lewat URL (<span class="ic">hapus.php?id=3</span>). Gunakan <span class="ic">confirm()</span> JavaScript agar pengguna tidak salah klik.</p></div>
+    <div class="g2">
+      <div class="a">
+        <div class="codebox"><div class="cb-head"><span class="dots"><i></i><i></i><i></i></span><span class="fn">hapus.php</span><button class="copy">Salin</button></div><pre><code class="language-php" data-snip="dl_hapus"></code></pre></div>
+        <div class="codebox mt2"><div class="cb-head"><span class="dots"><i></i><i></i><i></i></span><span class="fn">index.php · link hapus</span><button class="copy">Salin</button></div><pre class="short"><code class="language-markup" data-snip="dl_link"></code></pre></div>
+      </div>
+      <div class="card a">
+        <div class="row" style="justify-content:space-between"><h3>🗑️ Coba hapus data</h3><button class="btn ghost sm" id="dlReset">↺ Kembalikan data</button></div>
+        <div class="dl mt2" id="dlList"></div>
+        <label class="lb mt">Log server</label>
+        <div class="console" id="dlLog" style="height:150px"><div class="ln c-mut">// menunggu aksi…</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 14 SQLi -->
+<section class="slide" id="s-sqli" data-title="Bahaya SQL Injection">
+  <div class="wrap">
+    <div class="head"><div class="kicker a" style="color:var(--bad)">12 · Keamanan</div><h2 class="a">SQL Injection: saat input pengguna <span style="color:var(--bad)">menjadi perintah</span></h2><p class="lead a">Jika input disisipkan langsung ke string SQL, penyerang dapat <b>mengubah logika query</b>. Coba login sebagai penyerang di bawah ini.</p></div>
+    <div class="g2">
+      <div class="card a" id="liCard">
+        <h3>🔐 Form Login (simulasi)</h3>
+        <div class="col mt2">
+          <div><label class="lb">Username</label><input class="in" id="liU" value="admin" autocomplete="off"></div>
+          <div><label class="lb">Password</label><input class="in" id="liP" value="" placeholder="tidak tahu passwordnya…" autocomplete="off"></div>
+          <div class="row"><span class="small mut">Coba payload:</span>
+            <button class="btn sm" data-pl="1">' OR '1'='1</button>
+            <button class="btn sm" data-pl="2">admin' -- </button>
+            <button class="btn sm" data-pl="3">password asli</button>
+          </div>
+          <div class="switch" id="liSafe"><span>Query biasa</span><span class="tr"></span><span>Prepared statement</span></div>
+          <button class="btn red" id="liGo">Login →</button>
+        </div>
+        <div id="liRes" class="mt2"></div>
+      </div>
+      <div class="col a">
+        <div><label class="lb">Query yang dikirim ke MySQL</label><div class="qbox" id="liQ"></div></div>
+        <div id="liParams"></div>
+        <div class="tabs" data-group="li"><button class="on" data-t="li-bad">❌ Rentan</button><button data-t="li-good">✅ Aman</button></div>
+        <div class="pane on" data-pane="li" id="li-bad"><div class="codebox"><div class="cb-head"><span class="dots"><i></i><i></i><i></i></span><span class="fn">login.php</span></div><pre class="short"><code class="language-php" data-snip="li_bad"></code></pre></div></div>
+        <div class="pane" data-pane="li" id="li-good"><div class="codebox"><div class="cb-head"><span class="dots"><i></i><i></i><i></i></span><span class="fn">login.php</span></div><pre class="short"><code class="language-php" data-snip="li_good"></code></pre></div></div>
+        <div class="note small">🔒 Di aplikasi nyata, password tidak disimpan sebagai teks biasa. Simpan dengan <span class="ic">password_hash()</span> dan periksa dengan <span class="ic">password_verify()</span>.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 15 BIND -->
+<section class="slide" id="s-bind" data-title="Prepared Statement & bind_param">
+  <div class="wrap">
+    <div class="head"><div class="kicker a">13 · Prepared Statement</div><h2 class="a">Memahami <span class="ic" style="font-size:.75em">bind_param("sssd", …)</span></h2><p class="lead a">Argumen pertama adalah <b>string tipe data</b>, satu huruf untuk setiap tanda <span class="ic">?</span>, berurutan dari kiri ke kanan.</p></div>
+    <div class="g2">
+      <div class="col">
+        <div class="card a">
+          <div class="g4" style="gap:10px">
+            <div style="text-align:center"><div class="typestr">i</div><b>integer</b><div class="mut small">bilangan bulat</div></div>
+            <div style="text-align:center"><div class="typestr">d</div><b>double</b><div class="mut small">desimal</div></div>
+            <div style="text-align:center"><div class="typestr">s</div><b>string</b><div class="mut small">teks, tanggal</div></div>
+            <div style="text-align:center"><div class="typestr">b</div><b>blob</b><div class="mut small">data biner</div></div>
+          </div>
+        </div>
+        <div class="codebox a"><div class="cb-head"><span class="dots"><i></i><i></i><i></i></span><span class="fn">4 langkah prepared statement</span><button class="copy">Salin</button></div><pre class="short"><code class="language-php" data-snip="bd_steps"></code></pre></div>
+      </div>
+      <div class="card a">
+        <h3>🎮 Tebak tipe datanya!</h3>
+        <p class="mut small">Pilih huruf tipe untuk setiap variabel. String tipe akan tersusun otomatis.</p>
+        <div class="col mt2" id="bgList"></div>
+        <div class="row mt" style="justify-content:space-between"><div><label class="lb">String tipe Anda:</label><div class="typestr" id="bgStr">_ _ _ _ _</div></div><div class="row"><button class="btn pri" id="bgCheck">✔ Periksa</button><button class="btn ghost sm" id="bgReset">↺</button></div></div>
+        <div id="bgRes"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 16 SIMULATOR -->
+<section class="slide" id="s-sim" data-title="Simulator Aplikasi CRUD">
+  <div class="wrap">
+    <div class="head"><div class="kicker a">14 · Praktik</div><h2 class="a">Simulator aplikasi CRUD lengkap</h2><p class="lead a">Gunakan aplikasi di kiri seperti aplikasi sungguhan. Panel kanan menunjukkan <b>apa yang terjadi di server</b>: file PHP yang dijalankan, query SQL, dan hasilnya.</p></div>
+    <div class="g-sim">
+      <div class="bw a">
+        <div class="bw-bar"><span class="dots"><i></i><i></i><i></i></span><button class="lnk" id="bwBack" style="color:#aab">←</button><div class="bw-url"><span class="lock">●</span><span id="bwUrl">localhost/crud-mahasiswa/index.php</span></div></div>
+        <div class="bw-body" id="bwBody"></div>
+      </div>
+      <div class="col a">
+        <div class="row" style="justify-content:space-between"><label class="lb" style="margin:0">🖥️ Log Server (PHP + MySQL)</label><button class="btn sm ghost" id="logClear">Bersihkan</button></div>
+        <div class="console" id="simLog" style="height:470px"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 17 CONSOLE -->
+<section class="slide" id="s-console" data-title="SQL Console">
+  <div class="wrap">
+    <div class="head"><div class="kicker a">15 · Latihan SQL</div><h2 class="a">SQL Console: tulis query Anda sendiri</h2><p class="lead a">Terhubung ke tabel <span class="ic">mahasiswa</span> yang sama dengan simulator. Mendukung SELECT (WHERE, ORDER BY, LIMIT, COUNT), INSERT, UPDATE, dan DELETE. Tekan <kbd class="ic">Ctrl</kbd>+<kbd class="ic">Enter</kbd> untuk menjalankan.</p></div>
+    <div class="g2">
+      <div class="col a">
+        <textarea class="in" id="sqlIn" rows="6" spellcheck="false">SELECT nama, ipk FROM mahasiswa WHERE ipk >= 3.5 ORDER BY ipk DESC;</textarea>
+        <div class="row"><button class="btn org" id="sqlRun">▶ Jalankan</button><button class="btn ghost sm" id="sqlResetDb">↺ Reset database</button></div>
+        <label class="lb">Contoh query (klik):</label>
+        <div class="exch" id="sqlEx"></div>
+        <div class="note v small">🎯 <b>Tantangan:</b> (1) tampilkan mahasiswa prodi Teknologi Informasi, (2) hitung jumlah mahasiswa ber-IPK di atas 3, (3) cari nama yang mengandung "an", (4) naikkan IPK mahasiswa id 5 menjadi 3.10.</div>
+      </div>
+      <div class="col a">
+        <label class="lb" style="margin:0">Hasil</label>
+        <div id="sqlOut"><div class="res-mut">// hasil query akan muncul di sini</div></div>
+        <label class="lb" style="margin:0">Riwayat</label>
+        <div class="console" id="sqlHist" style="height:150px"><div class="c-mut">// belum ada query</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 18 QUIZ -->
+<section class="slide" id="s-quiz" data-title="Kuis Pemahaman">
+  <div class="wrap">
+    <div class="head row" style="justify-content:space-between;align-items:flex-end"><div><div class="kicker a">16 · Evaluasi</div><h2 class="a">Kuis singkat: seberapa paham Anda?</h2></div>
+      <div class="row a"><svg class="ring" viewBox="0 0 120 120" style="width:80px;height:80px"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="10"/><circle id="qzRing" cx="60" cy="60" r="50" fill="none" stroke="url(#qg)" stroke-width="10" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314" transform="rotate(-90 60 60)" style="transition:stroke-dashoffset .8s"/><defs><linearGradient id="qg"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#3ddc97"/></linearGradient></defs><text x="60" y="68" text-anchor="middle" fill="#e8eaf6" font-size="24" font-weight="800" font-family="JetBrains Mono" id="qzScore">0/8</text></svg><button class="btn ghost sm" id="qzReset">↺ Ulangi</button></div></div>
+    <div class="qz" id="quiz"></div>
+  </div>
+</section>
+
+<!-- 19 END -->
+<section class="slide" id="s-end" data-title="Ringkasan & Tugas">
+  <div class="wrap">
+    <div class="head"><div class="kicker a">17 · Penutup</div><h2 class="a">Ringkasan &amp; <span class="grad">Tugas Praktikum</span></h2></div>
+    <div class="g4">
+      <div class="sumc a"><div class="glow" style="background:#3ddc97"></div><div class="L" style="color:#3ddc97">C</div><b>INSERT INTO</b><p class="mut small">Form POST → <span class="ic">$_POST</span> → prepare + bind_param → execute.</p></div>
+      <div class="sumc a"><div class="glow" style="background:#5b7cff"></div><div class="L" style="color:#82aaff">R</div><b>SELECT</b><p class="mut small">query → <span class="ic">while(fetch_assoc())</span> → tampilkan dengan <span class="ic">htmlspecialchars()</span>.</p></div>
+      <div class="sumc a"><div class="glow" style="background:#ffd166"></div><div class="L" style="color:#ffd166">U</div><b>UPDATE … WHERE</b><p class="mut small">Ambil data lama by id → isi form → UPDATE. <b>Jangan lupa WHERE!</b></p></div>
+      <div class="sumc a"><div class="glow" style="background:#ff5d73"></div><div class="L" style="color:#ff5d73">D</div><b>DELETE … WHERE</b><p class="mut small">Konfirmasi dulu → DELETE by id → redirect ke index.</p></div>
+    </div>
+    <div class="g2 mt">
+      <div class="card a">
+        <h3>📝 Tugas Praktikum</h3>
+        <p class="mut small mt2">Buat aplikasi <b>CRUD Data Buku Perpustakaan</b> dengan tabel <span class="ic">buku</span> (id, kode_buku, judul, penulis, tahun_terbit, stok). Centang yang sudah selesai:</p>
+        <div class="mt2" id="todo">
+          <label class="check"><input type="checkbox" data-k="t1"> Membuat database dan tabel <span class="ic">buku</span></label>
+          <label class="check"><input type="checkbox" data-k="t2"> File <span class="ic">koneksi.php</span> dengan try–catch</label>
+          <label class="check"><input type="checkbox" data-k="t3"> Halaman daftar buku (READ) dengan nomor urut</label>
+          <label class="check"><input type="checkbox" data-k="t4"> Form tambah buku (CREATE) memakai prepared statement</label>
+          <label class="check"><input type="checkbox" data-k="t5"> Form edit (UPDATE) dan hapus dengan konfirmasi (DELETE)</label>
+          <label class="check"><input type="checkbox" data-k="t6"> Semua output memakai <span class="ic">htmlspecialchars()</span></label>
+          <label class="check"><input type="checkbox" data-k="t7"> <b>Bonus:</b> fitur pencarian judul/penulis dengan <span class="ic">LIKE</span></label>
+        </div>
+      </div>
+      <div class="card a">
+        <h3>✅ Checklist Kode yang Baik</h3>
+        <div class="col mt2 small">
+          <div class="note g">Gunakan <b>prepared statement</b> untuk setiap query yang berisi input pengguna.</div>
+          <div class="note g">Bungkus output dengan <span class="ic">htmlspecialchars()</span> untuk mencegah XSS.</div>
+          <div class="note g">Selalu <span class="ic">exit;</span> setelah <span class="ic">header("Location: …")</span>.</div>
+          <div class="note g">Paksa id menjadi angka: <span class="ic">(int) $_GET['id']</span>.</div>
+          <div class="note g">Pisahkan koneksi di satu file, lalu <span class="ic">include</span> di file lain.</div>
+        </div>
+        <div class="lect mt"><div class="lav">RM</div><div><b>Rizki Muliono, S.Kom, M.Kom</b><span>Dosen Pengampu · Teknik Informatika · Universitas Medan Area</span></div></div>
+        <p class="mut small mt">Pertemuan berikutnya: <b>Session &amp; Login</b>, yaitu mengamankan halaman CRUD agar hanya bisa diakses pengguna yang login.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="nav">
+  <button class="btn sm" id="prevBtn">← Sebelumnya</button>
+  <div class="prog" id="prog" title="Klik untuk lompat"><i id="progBar"></i></div>
+  <span class="hint"><kbd>←</kbd> <kbd>→</kbd> navigasi</span>
+  <button class="btn sm pri" id="nextBtn">Berikutnya →</button>
+</footer>
+
+<div class="scrim" id="scrim"></div>
+<aside class="toc" id="toc"><div class="row" style="justify-content:space-between;margin-bottom:12px"><h3 style="margin:0">Daftar Materi</h3><button class="btn sm ghost" id="tocClose">✕</button></div><div id="tocList"></div></aside>
+<div class="modal-bg" id="modal"><div class="modal"><div class="mt-ic" id="mIc">⚠️</div><h3 id="mTitle">Konfirmasi</h3><p class="mut" id="mMsg" style="margin:6px 0 18px"></p><div class="row" style="justify-content:flex-end"><button class="btn ghost" id="mNo">Batal</button><button class="btn red" id="mYes">Ya, hapus</button></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ helpers ============ */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const hasPrism=()=>window.Prism&&Prism.languages&&Prism.languages.php&&Prism.highlightElement;
+function hl(el){try{if(hasPrism())Prism.highlightElement(el)}catch(e){}}
+function toast(msg){const t=$('#toast');t.innerHTML=msg;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2200)}
+function confirmBox(msg,title='Konfirmasi',yes='Ya, hapus'){return new Promise(res=>{const m=$('#modal');$('#mMsg').innerHTML=msg;$('#mTitle').textContent=title;$('#mYes').textContent=yes;m.classList.add('on');const done=v=>{m.classList.remove('on');$('#mYes').onclick=$('#mNo').onclick=null;res(v)};$('#mYes').onclick=()=>done(true);$('#mNo').onclick=()=>done(false);})}
+function shakeEl(el){el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake')}
+const fmt=(c,v)=>v===null||v===undefined?'NULL':(c==='ipk'&&typeof v==='number'?v.toFixed(2):v);
+
+/* floating symbols */
+(()=>{const syms=['<?php','$conn','SELECT','INSERT','->','{ }','?>','WHERE','$_POST','mysqli','UPDATE','DELETE','=>',';'];const box=$('#syms');for(let i=0;i<18;i++){const s=document.createElement('div');s.className='sym';s.textContent=syms[i%syms.length];s.style.left=(Math.random()*100)+'%';s.style.animationDuration=(22+Math.random()*26)+'s';s.style.animationDelay=(-Math.random()*40)+'s';s.style.fontSize=(14+Math.random()*16)+'px';box.appendChild(s)}})();
+
+/* ============ code snippets ============ */
+const SNIP={
+sql_create:`-- 1. Buat database
+CREATE DATABASE db_kampus;
+USE db_kampus;
+
+-- 2. Buat tabel mahasiswa
+CREATE TABLE mahasiswa (
+  id     INT AUTO_INCREMENT PRIMARY KEY,
+  nim    VARCHAR(15)  NOT NULL UNIQUE,
+  nama   VARCHAR(100) NOT NULL,
+  prodi  VARCHAR(50),
+  ipk    DECIMAL(3,2)
+);
+
+-- 3. Isi data awal
+INSERT INTO mahasiswa (nim, nama, prodi, ipk) VALUES
+('221401001', 'Andi Pratama',         'Ilmu Komputer',       3.45),
+('221401017', 'Siti Nurhaliza Lubis', 'Ilmu Komputer',       3.78),
+('221402008', 'Rizky Harahap',        'Teknologi Informasi', 3.12),
+('221401033', 'Dewi Sartika Ginting', 'Ilmu Komputer',       3.90),
+('221402021', 'Fajar Nasution',       'Teknologi Informasi', 2.98);`,
+kon_proc:`<?php
+// koneksi.php — gaya PROCEDURAL
+$host = "localhost";
+$user = "root";
+$pass = "";            // default XAMPP: kosong
+$db   = "db_kampus";
+
+$conn = mysqli_connect($host, $user, $pass, $db);
+
+if (!$conn) {
+    die("Koneksi gagal: " . mysqli_connect_error());
+}
+
+mysqli_set_charset($conn, "utf8mb4");
+?>`,
+kon_oop:`<?php
+// koneksi.php — gaya OOP (Object Oriented)
+$conn = new mysqli("localhost", "root", "", "db_kampus");
+
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
+}
+
+$conn->set_charset("utf8mb4");
+?>`,
+kon_try:`<?php
+// koneksi.php — dianjurkan untuk PHP 8.1+
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
+try {
+    $conn = new mysqli("localhost", "root", "", "db_kampus");
+    $conn->set_charset("utf8mb4");
+} catch (mysqli_sql_exception $e) {
+    die("Koneksi gagal: " . $e->getMessage());
+}
+?>`,
+cr_form:`<!-- tambah.php (bagian form) -->
+<form method="POST" action="">
+  <label>NIM</label>
+  <input type="text" name="nim" required>
+
+  <label>Nama</label>
+  <input type="text" name="nama" required>
+
+  <label>Prodi</label>
+  <select name="prodi">
+    <option>Ilmu Komputer</option>
+    <option>Teknologi Informasi</option>
+  </select>
+
+  <label>IPK</label>
+  <input type="number" name="ipk" step="0.01" min="0" max="4">
+
+  <button type="submit" name="simpan">Simpan</button>
+</form>`,
+cr_basic:`<?php
+include "koneksi.php";
+
+if (isset($_POST['simpan'])) {
+    $nim   = $_POST['nim'];
+    $nama  = $_POST['nama'];
+    $prodi = $_POST['prodi'];
+    $ipk   = $_POST['ipk'];
+
+    $sql = "INSERT INTO mahasiswa (nim, nama, prodi, ipk)
+            VALUES ('$nim', '$nama', '$prodi', '$ipk')";
+
+    if (mysqli_query($conn, $sql)) {
+        header("Location: index.php?pesan=tambah");
+        exit;
+    } else {
+        echo "Error: " . mysqli_error($conn);
+    }
+}
+?>`,
+cr_safe:`<?php
+include "koneksi.php";
+
+if (isset($_POST['simpan'])) {
+    $nim   = trim($_POST['nim']);
+    $nama  = trim($_POST['nama']);
+    $prodi = $_POST['prodi'];
+    $ipk   = (float) $_POST['ipk'];
+
+    // 1. prepare: query dengan placeholder ?
+    $stmt = $conn->prepare(
+        "INSERT INTO mahasiswa (nim, nama, prodi, ipk) VALUES (?, ?, ?, ?)"
+    );
+    // 2. bind: s = string, d = double
+    $stmt->bind_param("sssd", $nim, $nama, $prodi, $ipk);
+
+    // 3. execute
+    if ($stmt->execute()) {
+        header("Location: index.php?pesan=tambah");
+        exit;
+    }
+    echo "Gagal menyimpan: " . $stmt->error;
+}
+?>`,
+rd_index:`<?php
+include "koneksi.php";
+$result = mysqli_query($conn,
+          "SELECT * FROM mahasiswa ORDER BY nama ASC");
+?>
+<a href="tambah.php">+ Tambah Data</a>
+<table border="1">
+  <tr>
+    <th>No</th><th>NIM</th><th>Nama</th>
+    <th>IPK</th><th>Aksi</th>
+  </tr>
+  <?php $no = 1; ?>
+  <?php while ($row = mysqli_fetch_assoc($result)) : ?>
+  <tr>
+    <td><?= $no++ ?></td>
+    <td><?= htmlspecialchars($row['nim']) ?></td>
+    <td><?= htmlspecialchars($row['nama']) ?></td>
+    <td><?= $row['ipk'] ?></td>
+    <td>
+      <a href="edit.php?id=<?= $row['id'] ?>">Edit</a> |
+      <a href="hapus.php?id=<?= $row['id'] ?>"
+         onclick="return confirm('Yakin hapus?')">Hapus</a>
+    </td>
+  </tr>
+  <?php endwhile; ?>
+</table>`,
+up_edit:`<?php
+include "koneksi.php";
+$id = (int) $_GET['id'];      // paksa jadi angka
+
+// (1) Ambil data lama untuk mengisi form
+$stmt = $conn->prepare("SELECT * FROM mahasiswa WHERE id = ?");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$data = $stmt->get_result()->fetch_assoc();
+
+if (!$data) { die("Data tidak ditemukan"); }
+
+// (2) Proses saat tombol Update ditekan
+if (isset($_POST['update'])) {
+    $stmt = $conn->prepare(
+        "UPDATE mahasiswa SET nim=?, nama=?, prodi=?, ipk=? WHERE id=?"
+    );
+    $stmt->bind_param("sssdi", $_POST['nim'], $_POST['nama'],
+                      $_POST['prodi'], $_POST['ipk'], $id);
+    $stmt->execute();
+    header("Location: index.php?pesan=update");
+    exit;
+}
+?>
+<form method="POST">
+  <input name="nim"  value="<?= htmlspecialchars($data['nim']) ?>">
+  <input name="nama" value="<?= htmlspecialchars($data['nama']) ?>">
+  <input name="prodi" value="<?= htmlspecialchars($data['prodi']) ?>">
+  <input name="ipk"  value="<?= $data['ipk'] ?>">
+  <button type="submit" name="update">Update</button>
+</form>`,
+dl_hapus:`<?php
+include "koneksi.php";
+$id = (int) $_GET['id'];
+
+$stmt = $conn->prepare("DELETE FROM mahasiswa WHERE id = ?");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+
+if ($stmt->affected_rows > 0) {
+    header("Location: index.php?pesan=hapus");
+} else {
+    header("Location: index.php?pesan=gagal");
+}
+exit;
+?>`,
+dl_link:`<a href="hapus.php?id=<?= $row['id'] ?>"
+   onclick="return confirm('Yakin ingin menghapus data ini?')">
+   Hapus
+</a>`,
+li_bad:`<?php
+$u = $_POST['username'];
+$p = $_POST['password'];
+
+$sql = "SELECT * FROM users
+        WHERE username = '$u' AND password = '$p'";
+$result = mysqli_query($conn, $sql);
+
+if (mysqli_num_rows($result) > 0) {
+    echo "Login berhasil!";
+}`,
+li_good:`<?php
+$stmt = $conn->prepare(
+    "SELECT * FROM users WHERE username = ? AND password = ?"
+);
+$stmt->bind_param("ss", $_POST['username'], $_POST['password']);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows > 0) {
+    echo "Login berhasil!";
+}`,
+bd_steps:`// 1. PREPARE — kirim "cetakan" query ke MySQL
+$stmt = $conn->prepare(
+  "UPDATE mahasiswa SET nama = ?, ipk = ? WHERE id = ?"
+);
+
+// 2. BIND — pasangkan variabel ke tiap ?
+//            nama(s)  ipk(d)  id(i)
+$stmt->bind_param("sdi", $nama, $ipk, $id);
+
+// 3. EXECUTE — jalankan
+$stmt->execute();
+
+// 4. CEK HASIL
+echo $stmt->affected_rows . " baris diubah";
+$stmt->close();`
+};
+$$('code[data-snip]').forEach(el=>{el.textContent=SNIP[el.dataset.snip]||'';hl(el)});
+
+/* copy */
+function fallbackCopy(text,done,b){const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();ok?done():(b.textContent='Pilih teks & Ctrl+C')}
+document.addEventListener('click',e=>{const b=e.target.closest('.copy');if(!b)return;const code=b.closest('.codebox').querySelector('code').textContent;const done=()=>{b.textContent='✓ Tersalin';setTimeout(()=>b.textContent='Salin',1600)};try{navigator.clipboard.writeText(code).then(done).catch(()=>fallbackCopy(code,done,b))}catch(_){fallbackCopy(code,done,b)}});
+
+/* tabs */
+$$('.tabs').forEach(tb=>tb.addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(!b)return;$$('button',tb).forEach(x=>x.classList.toggle('on',x===b));$$(`[data-pane="${tb.dataset.group}"]`).forEach(p=>p.classList.toggle('on',p.id===b.dataset.t))}));
+
+/* ============ mini SQL engine ============ */
+const SEED=[
+ {id:1,nim:'221401001',nama:'Andi Pratama',prodi:'Ilmu Komputer',ipk:3.45},
+ {id:2,nim:'221401017',nama:'Siti Nurhaliza Lubis',prodi:'Ilmu Komputer',ipk:3.78},
+ {id:3,nim:'221402008',nama:'Rizky Harahap',prodi:'Teknologi Informasi',ipk:3.12},
+ {id:4,nim:'221401033',nama:'Dewi Sartika Ginting',prodi:'Ilmu Komputer',ipk:3.90},
+ {id:5,nim:'221402021',nama:'Fajar Nasution',prodi:'Teknologi Informasi',ipk:2.98}];
+function mkMhs(rows=SEED){return{cols:['id','nim','nama','prodi','ipk'],rows:rows.map(r=>({...r})),ai:Math.max(0,...rows.map(r=>r.id))+1,notnull:['nim','nama'],unique:['nim'],num:{id:'int',ipk:'dec'}}}
+let DB={mahasiswa:mkMhs()};
+const USERS={users:{cols:['id','username','password','role'],rows:[{id:1,username:'admin',password:'rahasia123',role:'admin'},{id:2,username:'budi',password:'budi2026',role:'user'}],ai:3,notnull:[],unique:[],num:{id:'int'}}};
+
+function stripComments(s){let out='',q=false;for(let i=0;i<s.length;i++){const c=s[i];if(c==="'"){q=!q;out+=c;continue}if(!q){if(c==='#')break;if(c==='-'&&s[i+1]==='-'&&(i+2>=s.length||/\s/.test(s[i+2])))break}out+=c}return out}
+const unq=t=>t.slice(1,-1).replace(/''/g,"'");
+function tokVal(tok,row,t){if(tok[0]==="'")return unq(tok);if(/^-?\d/.test(tok))return Number(tok);if(/^NULL$/i.test(tok))return null;return row[tok]}
+function cmp(a,b,op){
+  if(op==='LIKE'||op==='NOT LIKE'){const re=new RegExp('^'+String(b).replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/%/g,'.*').replace(/_/g,'.')+'$','i');const r=a!==null&&re.test(String(a));return op==='LIKE'?r:!r}
+  if(a===null||b===null)return false;
+  const na=Number(a),nb=Number(b);let x=a,y=b;
+  if(a!==''&&b!==''&&!isNaN(na)&&!isNaN(nb)){x=na;y=nb}else{x=String(a).toLowerCase();y=String(b).toLowerCase()}
+  switch(op){case'=':return x===y;case'!=':case'<>':return x!==y;case'>':return x>y;case'<':return x<y;case'>=':return x>=y;case'<=':return x<=y}return false}
+function parseCond(str,t){
+  const atom=/\s*('(?:[^']|'')*'|-?\d+(?:\.\d+)?|[A-Za-z_]\w*)\s*(>=|<=|!=|<>|=|>|<|NOT\s+LIKE\b|LIKE\b)\s*('(?:[^']|'')*'|-?\d+(?:\.\d+)?|[A-Za-z_]\w*)\s*/iy;
+  const conn=/\s*(AND|OR)\s+/iy;const groups=[[]];let pos=0;str=str.trim();
+  while(true){atom.lastIndex=pos;const m=atom.exec(str);
+    if(!m)return{error:`ERROR 1064 (42000): You have an error in your SQL syntax near '${str.slice(pos,pos+25)}'`};
+    for(const side of[m[1],m[3]]){if(/^[A-Za-z_]/.test(side)&&!/^NULL$/i.test(side)&&!t.cols.includes(side))return{error:`ERROR 1054 (42S22): Unknown column '${side}' in 'where clause'`}}
+    groups[groups.length-1].push({l:m[1],op:m[2].toUpperCase().replace(/\s+/,' '),r:m[3]});pos=atom.lastIndex;
+    if(pos>=str.length)break;conn.lastIndex=pos;const c=conn.exec(str);
+    if(!c)return{error:`ERROR 1064 (42000): You have an error in your SQL syntax near '${str.slice(pos,pos+25)}'`};
+    if(c[1].toUpperCase()==='OR')groups.push([]);pos=conn.lastIndex}
+  return{fn:row=>groups.some(g=>g.every(c=>cmp(tokVal(c.l,row,t),tokVal(c.r,row,t),c.op)))}}
+function coerce(t,col,v){
+  if(v===null)return{v:null};const k=t.num[col];
+  if(k){if(v===''||isNaN(Number(v)))return{error:`ERROR 1366 (22007): Incorrect ${k==='int'?'integer':'decimal'} value: '${v}' for column '${col}'`};let n=Number(v);
+    if(k==='int')n=Math.trunc(n);if(col==='ipk'){n=Math.round(n*100)/100;if(Math.abs(n)>9.99)return{error:`ERROR 1264 (22003): Out of range value for column 'ipk'`}}return{v:n}}
+  return{v:String(v)}}
+function parseList(s){const re=/\s*('(?:[^']|'')*'|-?\d+(?:\.\d+)?|NULL)\s*(,|$)/iy;const out=[];let pos=0;s=s.trim();while(pos<s.length){re.lastIndex=pos;const m=re.exec(s);if(!m)return null;out.push(m[1][0]==="'"?unq(m[1]):/^NULL$/i.test(m[1])?null:Number(m[1]));pos=re.lastIndex;if(!m[2])break}return out}
+function runSQL(raw,db=DB){
+  let sql=stripComments(raw).trim().replace(/;\s*$/,'').trim();
+  if(!sql)return{ok:false,error:'ERROR 1065 (42000): Query was empty'};
+  if((sql.match(/'/g)||[]).length%2)return{ok:false,error:`ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near '${sql.slice(sql.lastIndexOf("'"),sql.lastIndexOf("'")+20)}'`};
+  const tbl=n=>db[n];const noT=n=>({ok:false,error:`ERROR 1146 (42S02): Table 'db_kampus.${n}' doesn't exist`});let m;
+  if(m=sql.match(/^SELECT\s+(.+?)\s+FROM\s+(\w+)(?:\s+WHERE\s+(.+?))?(?:\s+ORDER\s+BY\s+(\w+)(?:\s+(ASC|DESC))?)?(?:\s+LIMIT\s+(\d+))?$/is)){
+    const t=tbl(m[2]);if(!t)return noT(m[2]);let rows=t.rows.slice();
+    if(m[3]){const f=parseCond(m[3],t);if(f.error)return{ok:false,error:f.error};rows=rows.filter(f.fn)}
+    if(m[4]){if(!t.cols.includes(m[4]))return{ok:false,error:`ERROR 1054 (42S22): Unknown column '${m[4]}' in 'order clause'`};const d=(m[5]||'').toUpperCase()==='DESC'?-1:1;rows.sort((a,b)=>{const x=a[m[4]],y=b[m[4]];return(typeof x==='number'&&typeof y==='number'?x-y:String(x).localeCompare(String(y),'id'))*d})}
+    if(m[6])rows=rows.slice(0,+m[6]);
+    const cs=m[1].trim();if(/^COUNT\s*\(\s*\*\s*\)$/i.test(cs))return{ok:true,type:'select',cols:['COUNT(*)'],rows:[{'COUNT(*)':rows.length}]};
+    const cols=cs==='*'?t.cols:cs.split(',').map(s=>s.trim());for(const c of cols)if(!t.cols.includes(c))return{ok:false,error:`ERROR 1054 (42S22): Unknown column '${c}' in 'field list'`};
+    return{ok:true,type:'select',cols,rows:rows.map(r=>Object.fromEntries(cols.map(c=>[c,r[c]])))}}
+  if(m=sql.match(/^INSERT\s+INTO\s+(\w+)\s*\(([^)]*)\)\s*VALUES\s*\((.*)\)$/is)){
+    const t=tbl(m[1]);if(!t)return noT(m[1]);const cols=m[2].split(',').map(s=>s.trim());const vals=parseList(m[3]);
+    if(!vals)return{ok:false,error:`ERROR 1064 (42000): You have an error in your SQL syntax near '${m[3].slice(0,25)}'`};
+    for(const c of cols)if(!t.cols.includes(c))return{ok:false,error:`ERROR 1054 (42S22): Unknown column '${c}' in 'field list'`};
+    if(cols.length!==vals.length)return{ok:false,error:"ERROR 1136 (21S01): Column count doesn't match value count at row 1"};
+    const row={};t.cols.forEach(c=>row[c]=null);
+    for(let i=0;i<cols.length;i++){const r=coerce(t,cols[i],vals[i]);if(r.error)return{ok:false,error:r.error};row[cols[i]]=r.v}
+    for(const c of t.notnull)if(row[c]===null||row[c]===undefined)return{ok:false,error:`ERROR 1364 (HY000): Field '${c}' doesn't have a default value`};
+    for(const c of t.unique)if(t.rows.some(r=>String(r[c])===String(row[c])))return{ok:false,error:`ERROR 1062 (23000): Duplicate entry '${row[c]}' for key '${c}'`};
+    if(row.id===null)row.id=t.ai;else if(t.rows.some(r=>r.id===row.id))return{ok:false,error:`ERROR 1062 (23000): Duplicate entry '${row.id}' for key 'PRIMARY'`};
+    t.ai=Math.max(t.ai,row.id+1);t.rows.push(row);return{ok:true,type:'mod',affected:1,insertId:row.id,ids:[row.id]}}
+  if(m=sql.match(/^UPDATE\s+(\w+)\s+SET\s+(.+?)(?:\s+WHERE\s+(.+))?$/is)){
+    const t=tbl(m[1]);if(!t)return noT(m[1]);const re=/\s*(\w+)\s*=\s*('(?:[^']|'')*'|-?\d+(?:\.\d+)?|NULL)\s*(,|$)/iy;const sets=[];let pos=0;const s=m[2].trim();
+    while(pos<s.length){re.lastIndex=pos;const a=re.exec(s);if(!a)return{ok:false,error:`ERROR 1064 (42000): You have an error in your SQL syntax near '${s.slice(pos,pos+25)}'`};if(!t.cols.includes(a[1]))return{ok:false,error:`ERROR 1054 (42S22): Unknown column '${a[1]}' in 'field list'`};const v=a[2][0]==="'"?unq(a[2]):/^NULL$/i.test(a[2])?null:Number(a[2]);const r=coerce(t,a[1],v);if(r.error)return{ok:false,error:r.error};sets.push([a[1],r.v]);pos=re.lastIndex;if(!a[3])break}
+    let f=()=>true;if(m[3]){const c=parseCond(m[3],t);if(c.error)return{ok:false,error:c.error};f=c.fn}
+    const hit=t.rows.filter(f);
+    for(const[c,v]of sets)if(t.unique.includes(c)&&hit.length>1)return{ok:false,error:`ERROR 1062 (23000): Duplicate entry '${v}' for key '${c}'`};
+    for(const[c,v]of sets)if(t.unique.includes(c)&&t.rows.some(r=>!hit.includes(r)&&String(r[c])===String(v)))return{ok:false,error:`ERROR 1062 (23000): Duplicate entry '${v}' for key '${c}'`};
+    const ids=[];hit.forEach(r=>{let ch=false;for(const[c,v]of sets)if(r[c]!==v){r[c]=v;ch=true}if(ch)ids.push(r.id)});
+    return{ok:true,type:'mod',affected:ids.length,matched:hit.length,ids,noWhere:!m[3]}}
+  if(m=sql.match(/^DELETE\s+FROM\s+(\w+)(?:\s+WHERE\s+(.+))?$/is)){
+    const t=tbl(m[1]);if(!t)return noT(m[1]);let f=()=>true;if(m[2]){const c=parseCond(m[2],t);if(c.error)return{ok:false,error:c.error};f=c.fn}
+    const ids=t.rows.filter(f).map(r=>r.id);t.rows=t.rows.filter(r=>!f(r));return{ok:true,type:'mod',affected:ids.length,ids,noWhere:!m[2]}}
+  if(/^(CREATE|DROP|ALTER|TRUNCATE)\b/i.test(sql))return{ok:false,error:'Perintah DDL (CREATE/DROP/ALTER/TRUNCATE) tidak didukung di simulator ini. Gunakan SELECT, INSERT, UPDATE, atau DELETE.'};
+  return{ok:false,error:`ERROR 1064 (42000): You have an error in your SQL syntax near '${sql.slice(0,25)}'`}}
+const sq=v=>`'${String(v).replace(/'/g,"''")}'`;
+function resultHTML(res){
+  if(!res.ok)return`<div class="res-err">${esc(res.error)}</div>`;
+  if(res.type==='select'){if(!res.rows.length)return`<div class="res-mut">Empty set (0 baris)</div>`;
+    return`<div class="tblwrap"><table class="tbl"><thead><tr>${res.cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${res.rows.map((r,i)=>`<tr style="animation:fadeUp .35s ${i*40}ms both">${res.cols.map(c=>`<td>${esc(fmt(c,r[c]))}</td>`).join('')}</tr>`).join('')}</tbody></table></div><div class="res-mut">${res.rows.length} baris ditemukan</div>`}
+  return`<div class="res-ok">Query OK, ${res.affected} baris terpengaruh${res.matched!==undefined?` (Rows matched: ${res.matched}, Changed: ${res.affected})`:''}${res.insertId?` · insert_id = ${res.insertId}`:''}</div>${res.noWhere&&res.affected>1?'<div class="res-err mt2">⚠️ Query tanpa WHERE mempengaruhi SEMUA baris!</div>':''}`}
+const dbListeners=[];const dbChanged=()=>dbListeners.forEach(f=>f());
+
+/* ============ navigation ============ */
+const slides=$$('.slide');let cur=-1;const hooks={};
+slides.forEach(s=>$$('.a',s).forEach((el,j)=>el.style.setProperty('--i',j)));
+function idxOf(x){if(typeof x==='number')return x;const n=slides.findIndex(s=>s.id===x);return n<0?0:n}
+function go(x){const n=Math.max(0,Math.min(slides.length-1,idxOf(x)));if(n===cur)return;
+  slides.forEach((s,i)=>{s.classList.remove('active','in');s.classList.toggle('left',i<n)});
+  const s=slides[n];s.classList.add('active');s.scrollTop=0;void s.offsetWidth;s.classList.add('in');cur=n;
+  $('#counter').textContent=`${n+1} / ${slides.length}`;$('#progBar').style.width=((n+1)/slides.length*100)+'%';
+  $('#prevBtn').disabled=n===0;$('#nextBtn').disabled=n===slides.length-1;
+  $$('#tocList button').forEach((b,i)=>b.classList.toggle('on',i===n));
+  const h='#slide-'+(n+1);if(location.hash!==h){try{history.replaceState(null,'',h)}catch(e){try{location.hash=h}catch(_){}}}
+  if(hooks[s.id])hooks[s.id]()}
+$('#prevBtn').onclick=()=>go(cur-1);$('#nextBtn').onclick=()=>go(cur+1);
+$('#prog').onclick=e=>{const r=e.currentTarget.getBoundingClientRect();go(Math.floor((e.clientX-r.left)/r.width*slides.length))};
+document.addEventListener('keydown',e=>{if(e.target.closest('input,textarea,select,[contenteditable]'))return;if($('#modal').classList.contains('on'))return;
+  if(['ArrowRight','PageDown'].includes(e.key)){e.preventDefault();go(cur+1)}else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();go(cur-1)}else if(e.key==='Home')go(0);else if(e.key==='End')go(slides.length-1);else if(e.key==='Escape')closeToc()});
+let tx=0,ty=0;$('#stage').addEventListener('touchstart',e=>{tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+$('#stage').addEventListener('touchend',e=>{if(e.target.closest('.tblwrap,pre,.console,input,textarea,.bw,svg'))return;const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;if(Math.abs(dx)>70&&Math.abs(dy)<45)go(cur+(dx<0?1:-1))},{passive:true});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(!b)return;const v=b.dataset.go;go(/^\d+$/.test(v)?+v:v)});
+$('#tocList').innerHTML=slides.map((s,i)=>`<button data-i="${i}"><span class="no">${String(i+1).padStart(2,'0')}</span>${esc(s.dataset.title)}</button>`).join('');
+$('#tocList').onclick=e=>{const b=e.target.closest('button');if(b){go(+b.dataset.i);closeToc()}};
+const openToc=()=>{$('#toc').classList.add('on');$('#scrim').classList.add('on')},closeToc=()=>{$('#toc').classList.remove('on');$('#scrim').classList.remove('on')};
+$('#tocBtn').onclick=openToc;$('#tocClose').onclick=closeToc;$('#scrim').onclick=closeToc;
+window.addEventListener('hashchange',()=>{const m=location.hash.match(/^#slide-(\d+)$/);if(m)go(+m[1]-1)});
+
+/* ============ 1 cover typer ============ */
+(()=>{const lines=['$conn = new mysqli("localhost", "root", "", "db_kampus");','$result = $conn->query("SELECT * FROM mahasiswa");','while ($row = $result->fetch_assoc()) { echo $row["nama"]; }','$stmt->bind_param("sssd", $nim, $nama, $prodi, $ipk);'];
+  const el=$('#typer');let li=0;(async function loop(){while(true){const t=lines[li%lines.length];for(let i=1;i<=t.length;i++){el.textContent=t.slice(0,i);await sleep(28)}await sleep(1700);for(let i=t.length;i>=0;i-=3){el.textContent=t.slice(0,i);await sleep(10)}await sleep(250);li++}})()})();
+
+/* ============ 3 flow ============ */
+(()=>{const steps=[{p:'fp1',c:'#82aaff',cap:'→ GET /crud/index.php HTTP/1.1  (Browser → Server)'},{n:'nP',cap:'⚙️ PHP interpreter mengeksekusi index.php …'},{p:'fp2',c:'#ffb35c',cap:'→ mysqli_query($conn, "SELECT * FROM mahasiswa")'},{n:'nM',cap:'🛢️ MySQL membaca tabel mahasiswa …'},{p:'fp3',c:'#3ddc97',cap:'← Result set: 5 baris dikembalikan ke PHP'},{p:'fp4',c:'#86e6f2',cap:'← HTTP/1.1 200 OK · Content-Type: text/html'},{n:'nB',cap:'✅ Browser me-render tabel HTML. Selesai!'}];
+  let i=-1,busy=false,auto=false;const lis=$$('#flowSteps li'),pk=$('#packet');
+  function animPath(id,color,dur=1100){return new Promise(res=>{const p=$('#'+id);p.classList.add('lit');const L=p.getTotalLength();pk.setAttribute('fill',color);pk.style.opacity=1;const t0=performance.now();
+    (function f(t){let k=Math.min(1,(t-t0)/dur);const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;const pt=p.getPointAtLength(L*e);pk.setAttribute('cx',pt.x);pk.setAttribute('cy',pt.y);if(k<1)requestAnimationFrame(f);else{pk.style.opacity=0;p.classList.remove('lit');res()}})(t0)})}
+  async function step(){if(busy||i>=steps.length-1)return false;busy=true;i++;lis.forEach((l,j)=>{l.classList.toggle('on',j===i);l.classList.toggle('done',j<i)});const s=steps[i];$('#flowCap').textContent=s.cap;
+    $$('.node').forEach(n=>n.classList.remove('on'));
+    if(s.p)await animPath(s.p,s.c);else{const n=$('#'+s.n);n.classList.add('on');n.classList.remove('pulse');void n.getBBox();n.classList.add('pulse');await sleep(900)}
+    busy=false;if(i===steps.length-1)lis[i].classList.add('done');return true}
+  function reset(){auto=false;i=-1;lis.forEach(l=>l.classList.remove('on','done'));$$('.node').forEach(n=>n.classList.remove('on','pulse'));$('#flowCap').textContent='Tekan ▶ Jalankan untuk memulai animasi…'}
+  $('#flowStep').onclick=()=>step();$('#flowReset').onclick=()=>{if(!busy)reset()};
+  $('#flowPlay').onclick=async()=>{if(busy)return;if(i>=steps.length-1)reset();auto=true;while(auto&&await step())await sleep(250);auto=false}})();
+
+/* ============ 4 flip ============ */
+$$('.flip').forEach(f=>f.addEventListener('click',()=>f.classList.toggle('on')));
+
+/* ============ 5 tree ============ */
+(()=>{const info={root:'📂 <b>Folder proyek</b> di dalam <span class="ic">htdocs</span>. Nama folder ini menjadi bagian URL: <span class="ic">localhost/crud-mahasiswa/</span>.',
+  koneksi:'⚙️ <b>koneksi.php</b>: menyimpan konfigurasi host, user, password, dan nama database. Dipanggil dengan <span class="ic">include "koneksi.php";</span> di setiap file. Jika password berubah, cukup ubah satu file ini.',
+  index:'📄 <b>index.php</b> (READ): halaman utama. Menjalankan <span class="ic">SELECT</span> dan menampilkan data dalam tabel, lengkap dengan link Edit &amp; Hapus.',
+  tambah:'📄 <b>tambah.php</b> (CREATE): berisi form input. Saat disubmit (POST), data disimpan dengan <span class="ic">INSERT INTO</span>.',
+  edit:'📄 <b>edit.php?id=…</b> (UPDATE): mengambil data lama berdasarkan id, menampilkannya di form, lalu menyimpan perubahan dengan <span class="ic">UPDATE</span>.',
+  hapus:'📄 <b>hapus.php?id=…</b> (DELETE): tidak punya tampilan. Langsung menghapus data, lalu redirect kembali ke index.php.',
+  sql:'🗄️ <b>db_kampus.sql</b>: script pembuatan database dan tabel. Berguna untuk dibagikan ke teman satu tim atau di-import via phpMyAdmin.'};
+  $('#tree').onclick=e=>{const it=e.target.closest('.it');if(!it)return;$$('#tree .it').forEach(x=>x.classList.toggle('on',x===it));const n=$('#treeInfo');n.innerHTML=info[it.dataset.f];n.style.animation='none';void n.offsetWidth;n.style.animation='fadeUp .35s'}})();
+
+/* ============ 6 db typewriter ============ */
+(()=>{const el=$('#sqlType');let typed=false,tok=0;
+  async function type(){const my=++tok;const t=SNIP.sql_create;el.textContent='';el.parentElement.classList.add('caret');for(let i=0;i<t.length;i+=3){if(my!==tok)return;el.textContent=t.slice(0,i);await sleep(9)}finish()}
+  function finish(){tok++;el.textContent=SNIP.sql_create;el.parentElement.classList.remove('caret');hl(el);typed=true}
+  hooks['s-db']=()=>{if(!typed)type()};$('#sqlSkip').onclick=finish;$('#sqlReplay').onclick=()=>{typed=false;type()};
+  const ci={id:'🔑 <b>id</b> adalah <i>Primary Key</i>: penanda unik setiap baris. <span class="ic">AUTO_INCREMENT</span> membuat MySQL mengisi angkanya otomatis (1, 2, 3, …), jadi kita tidak perlu mengisinya saat INSERT.',
+    nim:'<b>nim</b>: <span class="ic">VARCHAR(15)</span> menampung teks maksimal 15 karakter. <span class="ic">UNIQUE</span> mencegah dua mahasiswa memiliki NIM yang sama.',
+    nama:'<b>nama</b>: <span class="ic">NOT NULL</span> berarti kolom wajib diisi. INSERT tanpa nama akan ditolak MySQL.',
+    prodi:'<b>prodi</b>: teks maksimal 50 karakter. Boleh kosong (NULL) karena tidak ada NOT NULL.',
+    ipk:'<b>ipk</b>: <span class="ic">DECIMAL(3,2)</span> artinya total 3 digit dengan 2 digit di belakang koma, misalnya 3.75. Nilai maksimum yang bisa disimpan 9.99.'};
+  $('#schema').onclick=e=>{const c=e.target.closest('.sc');if(!c)return;$$('#schema .sc').forEach(x=>x.classList.toggle('on',x===c));const n=$('#colInfo');n.innerHTML=ci[c.dataset.c];n.style.animation='none';void n.offsetWidth;n.style.animation='fadeUp .35s'}})();
+
+/* ============ 7 connection ============ */
+(()=>{const svg=$('#conSvg'),out=$('#cOut');
+  $('#cGo').onclick=async()=>{const h=$('#cHost').value.trim(),u=$('#cUser').value.trim(),p=$('#cPass').value,d=$('#cDb').value.trim();
+    svg.classList.remove('ok','fail');out.innerHTML='<span style="color:#888">⏳ menghubungkan…</span>';await sleep(650);let err=null;
+    if(!['localhost','127.0.0.1'].includes(h.toLowerCase()))err=`php_network_getaddresses: getaddrinfo for ${h||'(kosong)'} failed: No such host is known.`;
+    else if(u!=='root'||p!=='')err=`Access denied for user '${u}'@'localhost' (using password: ${p?'YES':'NO'})`;
+    else if(d&&d!=='db_kampus')err=`Unknown database '${d}'`;
+    if(err){svg.classList.add('fail');shakeEl(svg);out.innerHTML=`Koneksi gagal: <span class="fatal">${esc(err)}</span>`}
+    else{svg.classList.add('ok');out.innerHTML=`<b style="color:#0a7a46">✔ Koneksi berhasil!</b> Terhubung ke server MySQL/MariaDB di <b>${esc(h)}</b>${d?`, database <b>${esc(d)}</b> dipilih.`:' tanpa memilih database.'}<br><small style="color:#666">(Di kode asli tidak ada output apa pun saat berhasil. Halaman tetap kosong, dan itu normal.)</small>`}};
+  $('#cReset').onclick=()=>{$('#cHost').value='localhost';$('#cUser').value='root';$('#cPass').value='';$('#cDb').value='db_kampus';svg.classList.remove('ok','fail');out.innerHTML='<span style="color:#888">(belum dijalankan)</span>'}})();
+
+/* ============ 8 cheat ============ */
+(()=>{const rows=[['Koneksi','mysqli_connect($h, $u, $p, $db)','new mysqli($h, $u, $p, $db)','Membuka koneksi ke server'],['Jalankan query','mysqli_query($conn, $sql)','$conn->query($sql)','Mengirim perintah SQL'],['Ambil 1 baris','mysqli_fetch_assoc($result)','$result->fetch_assoc()','Array asosiatif, key = nama kolom'],['Jumlah baris','mysqli_num_rows($result)','$result->num_rows','Banyak baris hasil SELECT'],['Baris terpengaruh','mysqli_affected_rows($conn)','$conn->affected_rows','Hasil INSERT / UPDATE / DELETE'],['ID terakhir','mysqli_insert_id($conn)','$conn->insert_id','Nilai AUTO_INCREMENT terakhir'],['Pesan error','mysqli_error($conn)','$conn->error','Error dari query terakhir'],['Prepared stmt','mysqli_prepare($conn, $sql)','$conn->prepare($sql)','Query dengan placeholder ?'],['Escape string','mysqli_real_escape_string($conn, $s)','$conn->real_escape_string($s)','Alternatif lama (prepared lebih baik)'],['Tutup koneksi','mysqli_close($conn)','$conn->close()','Membebaskan koneksi']];
+  let oop=false;const body=$('#cheatBody');
+  function render(anim){body.innerHTML=rows.map((r,i)=>`<tr><td><b>${r[0]}</b></td><td><span class="fnc ${anim?'flipx':''}" style="animation-delay:${i*45}ms">${esc(oop?r[2]:r[1])}</span></td><td class="mut">${r[3]}</td></tr>`).join('')}
+  render(false);$('#styleSw').onclick=()=>{oop=!oop;$('#styleSw').classList.toggle('on',oop);render(true)}})();
+
+/* ============ 9 create ============ */
+(()=>{const f=$('#crForm');
+  function upd(){const d=Object.fromEntries(new FormData(f));$('#crCount').textContent=DB.mahasiswa.rows.length;
+    $('#crPost').innerHTML='<span class="p">Array</span>\n(\n'+Object.entries(d).map(([k,v])=>`    [<span class="k">${k}</span>] =&gt; <span class="v">${esc(v)}</span>`).join('\n')+'\n)';
+    const w=v=>`<span class="${String(v).includes("'")?'inj':'val'}">${esc(v)}</span>`;
+    $('#crSql').innerHTML=`<span class="kw">INSERT INTO</span> mahasiswa (nim, nama, prodi, ipk)<br><span class="kw">VALUES</span> ('${w(d.nim)}', '${w(d.nama)}', '${w(d.prodi)}', '${w(d.ipk)}')`+(Object.values(d).some(v=>v.includes("'"))?'<div class="c-err" style="margin-top:6px">⚠ Tanda petik di input "memotong" string SQL → query error atau celah SQL Injection. Versi aman (prepared statement) tidak bermasalah.</div>':'')}
+  f.addEventListener('input',upd);
+  const samples=[['221401050','Budi Santoso','Ilmu Komputer','3.50'],['221402066','Nadia Putri Sembiring','Teknologi Informasi','3.67'],['221401072','Yoga Siregar','Ilmu Komputer','3.21'],['221402081','Maria Tambunan','Teknologi Informasi','3.84']];let si=0;
+  $('#crFill').onclick=()=>{const s=samples[si++%samples.length];['nim','nama','prodi','ipk'].forEach((k,i)=>f.elements[k].value=s[i]);upd()};
+  $('#crEvil').onclick=()=>{f.elements.nim.value='221401099';f.elements.nama.value="Jum'at O'Neil";f.elements.ipk.value='3.30';upd()};
+  f.addEventListener('submit',e=>{e.preventDefault();const d=Object.fromEntries(new FormData(f));const box=$('#crRes');
+    if(!d.nim.trim()||!d.nama.trim()){box.innerHTML='<div class="res-err">Validasi: NIM dan Nama wajib diisi (atribut <b>required</b>).</div>';shakeEl(f);return}
+    const ipk=d.ipk===''?'NULL':Number(d.ipk);
+    if(d.ipk!==''&&(isNaN(ipk)||ipk<0||ipk>4)){box.innerHTML='<div class="res-err">Validasi: IPK harus 0.00 – 4.00</div>';shakeEl(f);return}
+    const res=runSQL(`INSERT INTO mahasiswa (nim, nama, prodi, ipk) VALUES (${sq(d.nim.trim())}, ${sq(d.nama.trim())}, ${sq(d.prodi)}, ${ipk})`);
+    if(!res.ok){box.innerHTML=`<div class="res-err">$stmt-&gt;execute() gagal → ${esc(res.error)}</div>`;shakeEl(f);return}
+    fly(f.querySelector('button[type=submit]'),$('#crDb'),'INSERT ✓').then(()=>{const db=$('#crDb');db.classList.remove('bump');void db.offsetWidth;db.classList.add('bump');$('#crCount').textContent=DB.mahasiswa.rows.length});
+    box.innerHTML=`<div class="res-ok">✓ $stmt-&gt;execute() berhasil · insert_id = ${res.insertId} · lalu redirect ke index.php?pesan=tambah</div>`;dbChanged();f.reset();setTimeout(upd,10)});
+  hooks['s-create']=upd;upd()})();
+function fly(from,to,label){return new Promise(res=>{const a=from.getBoundingClientRect(),b=to.getBoundingClientRect();const el=document.createElement('div');el.className='flyer';el.textContent=label;document.body.appendChild(el);el.style.left=a.left+'px';el.style.top=a.top+'px';
+  const dx=b.left+b.width/2-a.left-40,dy=b.top-a.top;if(!el.animate){el.remove();res();return}
+  el.animate([{transform:'translate(0,0) scale(1)',opacity:1},{transform:`translate(${dx*.5}px,${dy-80}px) scale(1.15)`,opacity:1,offset:.5},{transform:`translate(${dx}px,${dy}px) scale(.4)`,opacity:.2}],{duration:900,easing:'cubic-bezier(.5,0,.3,1)'}).onfinish=()=>{el.remove();res()}})}
+
+/* ============ 10 read stepper ============ */
+(()=>{let rows=[],k=0,timer=null;
+  function load(){const r=runSQL('SELECT * FROM mahasiswa ORDER BY nama ASC');rows=r.rows.slice(0,6);k=0;clearInterval(timer);timer=null;$('#rdAuto').textContent='⏩ Otomatis';
+    $('#rdRs').innerHTML='<thead><tr><th>id</th><th>nim</th><th>nama</th><th>ipk</th></tr></thead><tbody>'+rows.map(r=>`<tr><td>${r.id}</td><td>${esc(r.nim)}</td><td>${esc(r.nama)}</td><td>${fmt('ipk',r.ipk)}</td></tr>`).join('')+'</tbody>';
+    $('#rdRow').innerHTML='<span class="c-mut">// belum ada iterasi, $no = 1</span>';
+    $('#rdOut').innerHTML='<a href="#" onclick="return false">+ Tambah Data</a><table style="margin-top:6px"><tr><th>No</th><th>NIM</th><th>Nama</th><th>IPK</th><th>Aksi</th></tr></table>';$('#rdStep').disabled=false}
+  function step(){const trs=$$('#rdRs tbody tr');
+    if(k>=rows.length){trs.forEach(t=>t.classList.remove('cur'));$('#rdRow').innerHTML='<span class="c-err">$row = NULL</span>  <span class="c-mut">// data habis → kondisi while bernilai false → loop BERHENTI ✋</span>';$('#rdStep').disabled=true;clearInterval(timer);timer=null;$('#rdAuto').textContent='⏩ Otomatis';return}
+    trs.forEach((t,i)=>{t.classList.toggle('cur',i===k);t.classList.toggle('done',i<k)});const r=rows[k];
+    $('#rdRow').innerHTML=`<span class="c-mut">// iterasi ke-${k+1}, $no = ${k+1}</span>\n<span class="p">$row</span> = [\n`+Object.entries(r).map(([a,b])=>`    <span class="k">'${a}'</span> =&gt; <span class="v">'${esc(fmt(a,b))}'</span>`).join(',\n')+'\n];';
+    const tb=$('#rdOut table');const tr=document.createElement('tr');tr.className='new';tr.innerHTML=`<td>${k+1}</td><td>${esc(r.nim)}</td><td>${esc(r.nama)}</td><td>${fmt('ipk',r.ipk)}</td><td><a href="#" onclick="return false">Edit</a> | <a href="#" onclick="return false">Hapus</a></td>`;tb.appendChild(tr);k++}
+  $('#rdStep').onclick=step;$('#rdReset').onclick=load;
+  $('#rdAuto').onclick=()=>{if(timer){clearInterval(timer);timer=null;$('#rdAuto').textContent='⏩ Otomatis';return}if(k>rows.length||$('#rdStep').disabled)load();$('#rdAuto').textContent='⏸ Jeda';step();timer=setInterval(step,1100)};
+  hooks['s-read']=load;load()})();
+
+/* ============ 11 fetch ============ */
+(()=>{const P=(o,ind='')=>'Array\n'+ind+'(\n'+Object.entries(o).map(([k,v])=>`${ind}    [${k}] => ${v}`).join('\n')+`\n${ind})`;
+  const M={assoc:{fn:'$row = $result->fetch_assoc();',info:'Key berupa <b>nama kolom</b>. Paling mudah dibaca dan paling sering dipakai.',acc:"$row['nama']"},
+    row:{fn:'$row = $result->fetch_row();',info:'Key berupa <b>angka indeks</b> 0, 1, 2… sesuai urutan kolom. Ringkas tetapi sulit dibaca.',acc:'$row[2]'},
+    array:{fn:'$row = $result->fetch_array();',info:'Berisi <b>keduanya</b> (indeks angka dan nama kolom), sehingga datanya dobel. Default: MYSQLI_BOTH.',acc:"$row['nama']  atau  $row[2]"},
+    object:{fn:'$row = $result->fetch_object();',info:'Menghasilkan <b>objek</b>. Kolom diakses dengan tanda panah <span class="ic">-&gt;</span>.',acc:'$row->nama'},
+    all:{fn:'$data = $result->fetch_all(MYSQLI_ASSOC);',info:'Mengambil <b>semua baris sekaligus</b> menjadi array 2 dimensi. Praktis, tetapi boros memori untuk data besar.',acc:"$data[0]['nama']   // lalu foreach ($data as $row)"}};
+  const box=$('#fetchBtns');box.onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;$$('[data-m]',box).forEach(x=>x.classList.toggle('pri',x===b));
+    const rs=runSQL('SELECT * FROM mahasiswa ORDER BY id').rows;const r=Object.fromEntries(Object.entries(rs[0]||SEED[0]).map(([k,v])=>[k,fmt(k,v)]));const vals=Object.values(r);let out;
+    const m=b.dataset.m;
+    if(m==='assoc')out=P(r);else if(m==='row')out=P(Object.fromEntries(vals.map((v,i)=>[i,v])));
+    else if(m==='array'){const o={};Object.entries(r).forEach(([k,v],i)=>{o[i]=v;o[k]=v});out=P(o)}
+    else if(m==='object')out='stdClass Object\n(\n'+Object.entries(r).map(([k,v])=>`    [${k}] => ${v}`).join('\n')+'\n)';
+    else out='Array\n(\n'+rs.slice(0,2).map((x,i)=>`    [${i}] => `+P(Object.fromEntries(Object.entries(x).map(([k,v])=>[k,fmt(k,v)])),'    ').replace(/^Array\n/,'Array\n')).join('\n')+`\n    ... (${rs.length} baris total)\n)`;
+    $('#fetchFn').textContent=M[m].fn+'  print_r(...)';$('#fetchInfo').innerHTML=M[m].info;
+    const pre=$('#fetchOut');pre.textContent='';let i=0;clearInterval(pre._t);pre._t=setInterval(()=>{i+=6;pre.textContent=out.slice(0,i);if(i>=out.length)clearInterval(pre._t)},12);
+    $('#fetchAccess').innerHTML=`Cara mengakses kolom <b>nama</b>: <span style="color:#ffcb6b">${esc(M[m].acc)}</span>`}})();
+
+/* ============ 12 update ============ */
+(()=>{let ldb;const seed4=SEED.slice(0,4);
+  function reset(){ldb={mahasiswa:mkMhs(seed4)};$('#upId').innerHTML=ldb.mahasiswa.rows.map(r=>`<option value="${r.id}">${r.id} (${esc(r.nama.split(' ')[0])})</option>`).join('');$('#upId').value='2';$('#upMsg').innerHTML='';table();sqlPrev()}
+  function table(ids=[],col){const t=ldb.mahasiswa;$('#upTbl').innerHTML='<thead><tr><th>id</th><th>nama</th><th>prodi</th><th>ipk</th></tr></thead><tbody>'+t.rows.map(r=>`<tr>${['id','nama','prodi','ipk'].map(c=>`<td class="${ids.includes(r.id)&&c===col?'flashY':''}">${esc(fmt(c,r[c]))}</td>`).join('')}</tr>`).join('')+'</tbody>'}
+  function build(){const c=$('#upCol').value,v=$('#upVal').value;const val=c==='ipk'?(v===''||isNaN(Number(v))?sq(v):v):sq(v);return`UPDATE mahasiswa SET ${c} = ${val}`+($('#upWhere').checked?` WHERE id = ${$('#upId').value}`:'')+';'}
+  function sqlPrev(){const el=$('#upSql');el.textContent=build();hl(el);$('#upId').disabled=!$('#upWhere').checked}
+  ['upCol','upVal','upWhere','upId'].forEach(id=>{$('#'+id).addEventListener('input',sqlPrev);$('#'+id).addEventListener('change',sqlPrev)});
+  $('#upCol').addEventListener('change',()=>{$('#upVal').value={ipk:'3.99',prodi:'Sistem Informasi',nama:'Nama Baru'}[$('#upCol').value];sqlPrev()});
+  $('#upRun').onclick=()=>{const res=runSQL(build(),ldb);table(res.ids||[],$('#upCol').value);$('#upMsg').innerHTML=resultHTML(res);
+    if(res.ok&&res.noWhere){shakeEl($('#upCard'));$('#upMsg').innerHTML+='<div class="note r mt2">💥 Tanpa <b>WHERE</b>, <b>semua</b> mahasiswa ikut berubah! Di database sungguhan, kesalahan ini tidak bisa di-<i>undo</i>. Klik "Reset data" untuk mengembalikan.</div>'}};
+  $('#upReset').onclick=reset;reset()})();
+
+/* ============ 13 delete ============ */
+(()=>{let ldb;const log=$('#dlLog');
+  function addLog(t,c){const d=document.createElement('div');d.className='ln '+c;d.textContent=t;log.appendChild(d);log.scrollTop=log.scrollHeight}
+  function render(){const L=$('#dlList');L.innerHTML=ldb.mahasiswa.rows.map(r=>`<div class="di" data-id="${r.id}"><div class="av">${esc(r.nama.split(' ').map(w=>w[0]).slice(0,2).join(''))}</div><div class="inf"><b>${esc(r.nama)}</b><span>id=${r.id} · ${esc(r.nim)}</span></div><button class="btn sm red" data-del="${r.id}">🗑 Hapus</button></div>`).join('')||'<div class="res-mut">Tabel kosong. Klik "Kembalikan data".</div>'}
+  function reset(){ldb={mahasiswa:mkMhs()};render();log.innerHTML='<div class="ln c-mut">// menunggu aksi…</div>'}
+  $('#dlList').onclick=async e=>{const b=e.target.closest('[data-del]');if(!b)return;const id=+b.dataset.del;const r=ldb.mahasiswa.rows.find(x=>x.id===id);
+    addLog(`[browser] confirm('Yakin ingin menghapus data ini?')`,'c-mut');
+    const ok=await confirmBox(`Yakin ingin menghapus data <b>${esc(r.nama)}</b> (id=${id})?<br><small>Ini adalah tiruan dialog <span class="ic">confirm()</span> JavaScript.</small>`,'localhost menyatakan');
+    if(!ok){addLog('[browser] pengguna menekan Batal → link tidak diikuti','c-warn');return}
+    addLog(`→ GET /hapus.php?id=${id}`,'c-req');await sleep(200);addLog(`  $stmt->bind_param("i", ${id});`,'c-php');await sleep(200);addLog(`  SQL: DELETE FROM mahasiswa WHERE id = ${id}`,'c-sql');
+    const res=runSQL(`DELETE FROM mahasiswa WHERE id = ${id}`,ldb);const el=b.closest('.di');el.classList.add('gone');await sleep(250);
+    addLog(`  ✓ affected_rows = ${res.affected}`,'c-ok');addLog('← 302 Location: index.php?pesan=hapus','c-req');setTimeout(render,600)};
+  $('#dlReset').onclick=reset;reset()})();
+
+/* ============ 14 SQL injection ============ */
+(()=>{let safe=false;const U=$('#liU'),P=$('#liP');
+  function hlv(v){return`<span class="${/['#]|--/.test(v)?'inj':'val'}">${esc(v)}</span>`}
+  function show(){if(safe){$('#liQ').innerHTML=`<span class="kw">SELECT</span> * <span class="kw">FROM</span> users <span class="kw">WHERE</span> username = <b style="color:#3ddc97">?</b> <span class="kw">AND</span> password = <b style="color:#3ddc97">?</b>`;
+      $('#liParams').innerHTML=`<label class="lb">Parameter dikirim TERPISAH (sebagai data, bukan kode)</label><div class="vars">? #1 (s) → <span class="v">"${esc(U.value)}"</span>\n? #2 (s) → <span class="v">"${esc(P.value)}"</span></div>`}
+    else{$('#liQ').innerHTML=`<span class="kw">SELECT</span> * <span class="kw">FROM</span> users <span class="kw">WHERE</span> username = '${hlv(U.value)}' <span class="kw">AND</span> password = '${hlv(P.value)}'`;$('#liParams').innerHTML=''}}
+  [U,P].forEach(x=>x.addEventListener('input',show));
+  $('#liSafe').onclick=()=>{safe=!safe;$('#liSafe').classList.toggle('on',safe);show();$('#liRes').innerHTML=''};
+  $$('[data-pl]').forEach(b=>b.onclick=()=>{const k=b.dataset.pl;if(k==='1'){U.value='admin';P.value="' OR '1'='1"}else if(k==='2'){U.value="admin' -- ";P.value='apa saja'}else{U.value='admin';P.value='rahasia123'}show()});
+  $('#liGo').onclick=()=>{const u=U.value,p=P.value,box=$('#liRes');let rows;
+    if(safe){rows=USERS.users.rows.filter(r=>r.username===u&&r.password===p)}
+    else{const res=runSQL(`SELECT * FROM users WHERE username = '${u}' AND password = '${p}'`,USERS);if(!res.ok){box.innerHTML=`<div class="res-err">💥 Fatal error: Uncaught mysqli_sql_exception: ${esc(res.error.replace(/^ERROR \d+ \(\w+\): /,''))}</div><div class="note mt2 small">Tanda petik dari input merusak struktur query. Error seperti ini adalah petunjuk bagi penyerang bahwa aplikasi rentan.</div>`;shakeEl($('#liCard'));return}rows=res.rows}
+    const legit=USERS.users.rows.some(r=>r.username===u&&r.password===p);
+    if(rows.length&&!legit){box.innerHTML=`<div class="res-err">🚨 <b>BOBOL!</b> Login berhasil sebagai <b>${esc(rows[0].username)}</b> (role: ${esc(rows[0].role)}) <u>tanpa password yang benar</u>. Query mengembalikan ${rows.length} baris.</div><div class="note r mt2 small">${/--|#/.test(u+p)?'Tanda <b>--</b> menjadikan sisa query (pengecekan password) sebagai komentar, sehingga diabaikan MySQL.':"Kondisi <b>OR '1'='1'</b> selalu bernilai TRUE, sehingga WHERE meloloskan semua baris."} Aktifkan <b>Prepared statement</b> lalu coba lagi.</div>`;shakeEl($('#liCard'))}
+    else if(rows.length)box.innerHTML=`<div class="res-ok">✅ Login berhasil sebagai <b>${esc(rows[0].username)}</b> (role: ${esc(rows[0].role)})</div>`;
+    else box.innerHTML=`<div class="res-ok" style="color:var(--warn);border-color:rgba(255,209,102,.35);background:rgba(255,209,102,.07)">🛡️ Login gagal: username atau password salah.${safe&&/['#]|--/.test(u+p)?' Payload injeksi diperlakukan sebagai <b>teks biasa</b>, sehingga serangan gagal. 🎉':''}</div>`};
+  show()})();
+
+/* ============ 15 bind game ============ */
+(()=>{const items=[['$nim = "221401005";','s','NIM disimpan di kolom VARCHAR. Walau isinya angka, ia diperlakukan sebagai teks → <b>s</b>.'],['$nama = "Budi Santoso";','s','Teks biasa → <b>s</b> (string).'],['$ipk = 3.75;','d','Bilangan desimal → <b>d</b> (double).'],['$id = 7;','i','Bilangan bulat → <b>i</b> (integer).'],['$foto = file_get_contents("foto.jpg");','b','Data biner berukuran besar (gambar/file) → <b>b</b> (blob).']];
+  let pick=Array(items.length).fill(null);const L=$('#bgList');
+  function render(){L.innerHTML=items.map((it,i)=>`<div class="bg-item" data-i="${i}"><code class="mono">${esc(it[0])}</code><div class="row" style="gap:6px">${['i','d','s','b'].map(t=>`<button class="tbtn ${pick[i]===t?'on':''}" data-t="${t}">${t}</button>`).join('')}</div><div class="why">${it[2]}</div></div>`).join('');str()}
+  function str(){$('#bgStr').innerHTML=pick.map(p=>p?`<span>${p}</span>`:'_').join(' ')}
+  L.onclick=e=>{const b=e.target.closest('.tbtn');if(!b)return;const it=b.closest('.bg-item');const i=+it.dataset.i;pick[i]=b.dataset.t;$$('.tbtn',it).forEach(x=>x.classList.toggle('on',x===b));it.classList.remove('right','wrong');str();$('#bgRes').innerHTML=''};
+  $('#bgCheck').onclick=()=>{let ok=0;$$('.bg-item',L).forEach((el,i)=>{const r=pick[i]===items[i][1];if(r)ok++;el.classList.toggle('right',r);el.classList.toggle('wrong',!r)});
+    $('#bgRes').innerHTML=ok===items.length?`<div class="res-ok mt2">🎉 Sempurna! <span class="mono">$stmt->bind_param("ssdib", $nim, $nama, $ipk, $id, $foto);</span></div>`:`<div class="res-err mt2">Benar ${ok} dari ${items.length}. Baca penjelasan di tiap baris, lalu coba lagi.</div>`};
+  $('#bgReset').onclick=()=>{pick=Array(items.length).fill(null);render();$('#bgRes').innerHTML=''};render()})();
+
+/* ============ 16 simulator ============ */
+(()=>{const body=$('#bwBody'),logEl=$('#simLog');let page='index',editId=null,flash=null,flashIds=[],q='',history_=[];
+  const queue=[];let running=false;
+  function log(lines){queue.push(...lines);if(!running)drain()}
+  async function drain(){running=true;while(queue.length){const[t,c]=queue.shift();const d=document.createElement('div');d.className='ln '+c;d.textContent=t;logEl.appendChild(d);logEl.scrollTop=logEl.scrollHeight;await sleep(110)}running=false}
+  const url=p=>$('#bwUrl').textContent='localhost/crud-mahasiswa/'+p;
+  async function loading(){const l=document.createElement('div');l.className='loading on';l.innerHTML='<div><div class="spin"></div>memuat…</div>';body.appendChild(l);await sleep(380)}
+  function sel(){const sql=q?`SELECT * FROM mahasiswa WHERE nama LIKE ${sq('%'+q+'%')} ORDER BY id`:'SELECT * FROM mahasiswa ORDER BY id';return[sql,runSQL(sql)]}
+  async function gotoIndex(msg,ids=[]){await loading();page='index';flash=msg;flashIds=ids;url('index.php'+(msg?'?pesan='+msg[2]:''));const[sql,res]=sel();
+    log([[`→ GET /index.php${msg?'?pesan='+msg[2]:''}${q?' (cari: '+q+')':''}`,'c-req'],['  include "koneksi.php";  ✓ terhubung','c-mut'],['  SQL: '+sql,'c-sql'],[`  ✓ ${res.rows.length} baris · while(fetch_assoc()) → render <tr>`,'c-ok'],['← 200 OK (HTML)','c-req']]);render()}
+  function render(){if(page==='index'){const[,res]=sel();
+      body.innerHTML=`${flash?`<div class="alert ${flash[0]}">${flash[1]}</div>`:''}<div class="row" style="justify-content:space-between;margin-bottom:12px"><div><h4>Data Mahasiswa</h4><div style="font-size:12px;color:#667">${DB.mahasiswa.rows.length} data tersimpan</div></div><button class="btn sm pri" id="sAdd">+ Tambah Data</button></div>
+      <form class="row" id="sSearch" style="margin-bottom:12px"><input class="in" id="sQ" placeholder="Cari nama…" value="${esc(q)}" style="flex:1;min-width:140px"><button class="btn sm org">Cari</button>${q?'<button class="btn sm" type="button" id="sClr" style="color:#334;background:#e4e6f2">×</button>':''}</form>
+      <div class="tblwrap"><table class="tbl"><thead><tr><th>No</th><th>NIM</th><th>Nama</th><th>Prodi</th><th>IPK</th><th>Aksi</th></tr></thead><tbody>${res.rows.map((r,i)=>`<tr class="${flashIds.includes(r.id)?(flash&&flash[2]==='update'?'flashY':'flashG'):''}"><td>${i+1}</td><td class="mono" style="font-size:12px">${esc(r.nim)}</td><td>${esc(r.nama)}</td><td>${esc(r.prodi??'')}</td><td>${fmt('ipk',r.ipk)}</td><td><button class="lnk e" data-e="${r.id}">Edit</button><button class="lnk d" data-d="${r.id}">Hapus</button></td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:#889;padding:20px">Tidak ada data</td></tr>'}</tbody></table></div>`;
+      flash=null;flashIds=[];
+      $('#sAdd').onclick=async()=>{await loading();page='tambah';url('tambah.php');log([['→ GET /tambah.php','c-req'],['  isset($_POST[\'simpan\']) = false → tampilkan form saja','c-mut'],['← 200 OK (HTML form)','c-req']]);render()};
+      $('#sSearch').onsubmit=e=>{e.preventDefault();q=$('#sQ').value.trim();gotoIndex(null)};
+      if($('#sClr'))$('#sClr').onclick=()=>{q='';gotoIndex(null)};
+      $$('[data-e]',body).forEach(b=>b.onclick=async()=>{const id=+b.dataset.e;await loading();editId=id;page='edit';url('edit.php?id='+id);const r=runSQL(`SELECT * FROM mahasiswa WHERE id = ${id}`);
+        log([[`→ GET /edit.php?id=${id}`,'c-req'],[`  $id = (int) $_GET['id'];  // ${id}`,'c-php'],['  $stmt->prepare("SELECT * FROM mahasiswa WHERE id = ?")','c-php'],[`  SQL: SELECT * FROM mahasiswa WHERE id = ${id}`,'c-sql'],[`  ✓ ${r.rows.length} baris → isi value form`,'c-ok'],['← 200 OK (HTML form terisi)','c-req']]);render()});
+      $$('[data-d]',body).forEach(b=>b.onclick=async()=>{const id=+b.dataset.d;const r=DB.mahasiswa.rows.find(x=>x.id===id);
+        if(!await confirmBox(`Yakin hapus <b>${esc(r.nama)}</b>?`,'localhost menyatakan')){log([['[browser] confirm() → Batal','c-warn']]);return}
+        const res=runSQL(`DELETE FROM mahasiswa WHERE id = ${id}`);log([[`→ GET /hapus.php?id=${id}`,'c-req'],['  $stmt->prepare("DELETE FROM mahasiswa WHERE id = ?")','c-php'],[`  $stmt->bind_param("i", ${id});`,'c-php'],[`  SQL: DELETE FROM mahasiswa WHERE id = ${id}`,'c-sql'],[`  ✓ affected_rows = ${res.affected}`,'c-ok'],['← 302 Redirect → index.php?pesan=hapus','c-req']]);dbChanged();
+        const tr=b.closest('tr');tr.style.transition='all .5s';tr.style.opacity='0';tr.style.transform='translateX(40px)';await sleep(450);gotoIndex(['ok','🗑️ Data berhasil dihapus.','hapus'])});
+    }else{const ed=page==='edit';const r=ed?DB.mahasiswa.rows.find(x=>x.id===editId):{nim:'',nama:'',prodi:'Ilmu Komputer',ipk:''};
+      body.innerHTML=`<h4>${ed?'✏️ Edit Data Mahasiswa':'➕ Tambah Data Mahasiswa'}</h4><div style="font-size:12px;color:#667;margin-bottom:14px">${ed?'id = '+editId:'Isi form lalu klik Simpan'}</div><div id="sErr"></div>
+      <form id="sForm" class="fgrid" autocomplete="off"><div><label class="lb">NIM</label><input class="in" name="nim" value="${esc(r.nim)}" required></div><div><label class="lb">Nama</label><input class="in" name="nama" value="${esc(r.nama)}" required></div>
+      <div><label class="lb">Prodi</label><select class="in" name="prodi">${['Ilmu Komputer','Teknologi Informasi','Sistem Informasi'].map(p=>`<option ${p===r.prodi?'selected':''}>${p}</option>`).join('')}</select></div><div><label class="lb">IPK</label><input class="in" name="ipk" type="number" step="0.01" min="0" max="4" value="${r.ipk===''||r.ipk===null?'':fmt('ipk',r.ipk)}"></div>
+      <div class="row" style="grid-column:1/-1"><button class="btn ${ed?'org':'grn'}">${ed?'💾 Update':'💾 Simpan'}</button><button type="button" class="btn sm" id="sCancel" style="color:#334;background:#e4e6f2">Batal</button></div></form>`;
+      $('#sCancel').onclick=()=>gotoIndex(null);
+      $('#sForm').onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target));const ipk=d.ipk===''?'NULL':Number(d.ipk);
+        const sql=ed?`UPDATE mahasiswa SET nim = ${sq(d.nim)}, nama = ${sq(d.nama)}, prodi = ${sq(d.prodi)}, ipk = ${ipk} WHERE id = ${editId}`:`INSERT INTO mahasiswa (nim, nama, prodi, ipk) VALUES (${sq(d.nim)}, ${sq(d.nama)}, ${sq(d.prodi)}, ${ipk})`;
+        log([[`→ POST /${ed?'edit.php?id='+editId:'tambah.php'}`,'c-req'],[`  $_POST = ${JSON.stringify(Object.assign(d,{[ed?'update':'simpan']:''}))}`,'c-mut'],[ed?'  $stmt->prepare("UPDATE mahasiswa SET nim=?, nama=?, prodi=?, ipk=? WHERE id=?")':'  $stmt->prepare("INSERT INTO mahasiswa (nim, nama, prodi, ipk) VALUES (?, ?, ?, ?)")','c-php'],[`  $stmt->bind_param("${ed?'sssdi':'sssd'}", …);`,'c-php'],['  SQL: '+sql,'c-sql']]);
+        const res=runSQL(sql);if(!res.ok){log([['  ✗ '+res.error,'c-err'],['← 200 OK (form ditampilkan ulang dengan pesan error)','c-req']]);$('#sErr').innerHTML=`<div class="alert err">Gagal menyimpan: ${esc(res.error)}</div>`;shakeEl(e.target);return}
+        log([[ed?`  ✓ Rows matched: ${res.matched}, Changed: ${res.affected}`:`  ✓ 1 baris ditambahkan · insert_id = ${res.insertId}`,'c-ok'],[`← 302 Redirect → index.php?pesan=${ed?'update':'tambah'}`,'c-req']]);dbChanged();
+        gotoIndex(ed?['ok','✏️ Data berhasil diperbarui.','update']:['ok','✅ Data berhasil ditambahkan.','tambah'],ed?[editId]:[res.insertId])}}}
+  $('#bwBack').onclick=()=>{if(page!=='index')gotoIndex(null)};
+  $('#logClear').onclick=()=>{logEl.innerHTML=''};
+  log([['// Server siap. Apache + PHP 8.2 + MySQL (simulasi)','c-mut'],['// Coba: tambah, edit, hapus, dan cari data di aplikasi kiri.','c-mut']]);
+  dbListeners.push(()=>{if(cur!==idxOf('s-sim')&&page==='index')render()});
+  hooks['s-sim']=()=>{if(page==='index')render()};render()})();
+
+/* ============ 17 console ============ */
+(()=>{const ex=['SELECT * FROM mahasiswa;','SELECT nama, ipk FROM mahasiswa ORDER BY ipk DESC LIMIT 3;',"SELECT * FROM mahasiswa WHERE prodi = 'Teknologi Informasi';","SELECT * FROM mahasiswa WHERE nama LIKE '%an%';",'SELECT COUNT(*) FROM mahasiswa WHERE ipk > 3;',"INSERT INTO mahasiswa (nim, nama, prodi, ipk) VALUES ('221401090', 'Rina Simanjuntak', 'Ilmu Komputer', 3.55);",'UPDATE mahasiswa SET ipk = 3.10 WHERE id = 5;','DELETE FROM mahasiswa WHERE id = 3;',"INSERT INTO mahasiswa (nim, nama) VALUES ('221401001', 'Duplikat');",'SELECT umur FROM mahasiswa;'];
+  $('#sqlEx').innerHTML=ex.map((e,i)=>`<button data-x="${i}">${esc(e.length>46?e.slice(0,44)+'…':e)}</button>`).join('');
+  $('#sqlEx').onclick=e=>{const b=e.target.closest('[data-x]');if(b){$('#sqlIn').value=ex[+b.dataset.x];$('#sqlIn').focus()}};
+  let first=true;
+  function run(){const raw=$('#sqlIn').value;const stmts=raw.split(/;\s*(?=(?:[^']*'[^']*')*[^']*$)/).map(s=>s.trim()).filter(Boolean);if(!stmts.length)return;let html='';const h=$('#sqlHist');if(first){h.innerHTML='';first=false}
+    stmts.forEach(s=>{const res=runSQL(s);html+=`<div class="qbox mb" style="min-height:0;padding:8px 12px;margin-bottom:8px;color:#ffb35c">mysql&gt; ${esc(s)};</div>`+resultHTML(res)+'<div style="height:12px"></div>';
+      const d=document.createElement('div');d.className='ln '+(res.ok?'c-ok':'c-err');d.textContent=(res.ok?'✓ ':'✗ ')+s;h.appendChild(d);h.scrollTop=h.scrollHeight;if(res.ok&&res.type==='mod')dbChanged()});
+    $('#sqlOut').innerHTML=html}
+  $('#sqlRun').onclick=run;$('#sqlIn').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();run()}});
+  $('#sqlResetDb').onclick=async()=>{if(await confirmBox('Kembalikan tabel <b>mahasiswa</b> ke 5 data awal? Perubahan di simulator juga akan hilang.','Reset database','Ya, reset')){DB.mahasiswa=mkMhs();dbChanged();toast('🔄 Database dikembalikan ke data awal')}}})();
+
+/* ============ 18 quiz ============ */
+(()=>{const Q=[
+ ['Fungsi MySQLi gaya procedural untuk membuka koneksi ke database adalah…',['mysql_connect()','mysqli_connect()','mysqli_open()','db_connect()'],1,'<span class="ic">mysqli_connect()</span>. Fungsi <span class="ic">mysql_connect()</span> (tanpa "i") sudah dihapus sejak PHP 7.'],
+ ['Operasi "Update" pada CRUD sesuai dengan perintah SQL…',['ALTER','MODIFY','UPDATE … SET','CHANGE'],2,'<span class="ic">UPDATE tabel SET kolom = nilai WHERE …</span>. ALTER dipakai untuk mengubah <i>struktur</i> tabel, bukan isi datanya.'],
+ ['Apa yang terjadi jika menjalankan <span class="ic">DELETE FROM mahasiswa;</span> tanpa WHERE?',['Error, karena WHERE wajib','Hanya baris pertama terhapus','Semua baris di tabel terhapus','Tabel mahasiswa ikut terhapus'],2,'Semua baris terhapus, tetapi struktur tabel tetap ada. Itulah sebabnya WHERE sangat penting pada UPDATE dan DELETE.'],
+ ['Pada <span class="ic">bind_param("sdi", $a, $b, $c)</span>, tipe $b adalah…',['string','double (desimal)','integer','blob'],1,'Huruf kedua "d" berarti double. Urutan huruf mengikuti urutan variabel.'],
+ ['Cara paling efektif mencegah SQL Injection adalah…',['Validasi dengan JavaScript','Menggunakan htmlspecialchars()','Menggunakan prepared statement','Mengenkripsi nama tabel'],2,'Prepared statement memisahkan kode SQL dari data. Validasi JavaScript bisa dilewati, dan htmlspecialchars() ditujukan untuk XSS.'],
+ ['<span class="ic">mysqli_fetch_assoc($result)</span> mengembalikan…',['Semua baris dalam array 2 dimensi','Satu baris sebagai array dengan key nama kolom','Jumlah baris hasil query','true atau false'],1,'Satu baris per pemanggilan, sebagai array asosiatif. Saat data habis ia mengembalikan NULL, sehingga loop while berhenti.'],
+ ['Fungsi <span class="ic">htmlspecialchars()</span> saat menampilkan data berguna untuk…',['Mempercepat query','Mencegah serangan XSS','Mengubah huruf jadi kapital','Mencegah SQL Injection'],1,'Mengubah karakter seperti &lt; &gt; menjadi entitas HTML agar script jahat yang tersimpan di database tidak dieksekusi browser (XSS).'],
+ ['Setelah <span class="ic">header("Location: index.php")</span> sebaiknya ditulis…',['return true;','break;','exit;','echo "ok";'],2,'<span class="ic">exit;</span> menghentikan eksekusi agar kode di bawahnya tidak ikut berjalan setelah redirect.']];
+ let score=0,answered=0;const box=$('#quiz');
+ function render(){score=0;answered=0;upd();box.innerHTML=Q.map((q,i)=>`<div class="qq" data-q="${i}" style="animation:fadeUp .5s ${i*60}ms both"><div class="qt"><span class="hl mono">${i+1}.</span> ${q[0]}</div><div class="qo">${q[1].map((o,j)=>`<button data-o="${j}">${String.fromCharCode(65+j)}. ${o}</button>`).join('')}</div><div class="qx">💡 ${q[3]}</div></div>`).join('')}
+ function upd(){$('#qzScore').textContent=`${score}/${Q.length}`;$('#qzRing').style.strokeDashoffset=314-314*score/Q.length}
+ box.onclick=e=>{const b=e.target.closest('[data-o]');if(!b||b.disabled)return;const qq=b.closest('.qq'),i=+qq.dataset.q,j=+b.dataset.o;$$('button',qq).forEach(x=>x.disabled=true);
+   const right=j===Q[i][2];b.classList.add(right?'right':'wrong');if(!right)$$('button',qq)[Q[i][2]].classList.add('right');qq.classList.add('done');if(right)score++;answered++;upd();
+   if(answered===Q.length)setTimeout(()=>toast(score===Q.length?'🏆 Sempurna! Anda siap membuat CRUD sendiri.':score>=6?`👏 Bagus! Skor ${score}/${Q.length}`:`📚 Skor ${score}/${Q.length}. Ulangi materi yang masih keliru, ya!`),400)};
+ $('#qzReset').onclick=render;render()})();
+
+/* ============ 19 todo ============ */
+(()=>{let st={};try{st=JSON.parse(localStorage.getItem('pw1-p10-todo')||'{}')}catch(e){}
+ $$('#todo input').forEach(c=>{c.checked=!!st[c.dataset.k];c.onchange=()=>{st[c.dataset.k]=c.checked;try{localStorage.setItem('pw1-p10-todo',JSON.stringify(st))}catch(e){}if($$('#todo input').every(x=>x.checked))toast('🎉 Semua tugas selesai! Mantap!')}})})();
+
+/* start */
+const m0=location.hash.match(/^#slide-(\d+)$/);go(m0?+m0[1]-1:0);
+</script>
+</body>
+</html>
